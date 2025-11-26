@@ -1,0 +1,290 @@
+﻿@model IEnumerable<WEBSGI.Models.ViewModel.PuestosViewModel>
+
+@{
+    ViewBag.Title = "Puestos";
+}
+<style>
+    #btnNuevoPuesto {
+        overflow: hidden;
+        white-space: nowrap;
+        width: 35px;
+        transition: width 0.5s ease;
+        border: none;
+        background: #28a745; /* Color verde de Bootstrap */
+        color: white;
+        padding: 10px;
+        cursor: pointer;
+    }
+
+        #btnNuevoPuesto .texto {
+            opacity: 0;
+            transition: opacity 0.5s ease, margin-left 0.5s ease;
+            margin-left: 0;
+        }
+
+        #btnNuevoPuesto:hover {
+            width: 250px;
+        }
+
+            #btnNuevoPuesto:hover .texto {
+                opacity: 1;
+                margin-left: 10px; /* separa el texto del icono */
+            }
+
+    /* Logo de Tecnisegur más grande */
+    .logo-tecnisegur {
+        max-width: 300px;
+    }
+
+    /* Título más grande */
+    #tituloPuestos {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    /* Campo de búsqueda mejorado */
+    .buscar-puesto-container {
+        position: relative;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .buscar-puesto {
+        width: 100%;
+        padding-right: 30px;
+        border-radius: 20px;
+        border: 1px solid #ced4da;
+        padding: 8px 12px;
+    }
+
+    .buscar-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    /* Tabla con diseño responsivo y más legible */
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table th {
+            background-color: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+    /* Contenedor de tabla con scroll horizontal en dispositivos pequeños */
+    .table-responsive {
+        overflow-x: auto;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    /* Para asegurar que los contenidos largos se muestren correctamente */
+    .table td {
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer; /* Indica interactividad */
+    }
+
+    /* Estilo cuando se expande el contenido */
+    .table tr.expanded td {
+        white-space: normal;
+        overflow: visible;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        border-radius: 4px;
+        z-index: 10;
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<!-- Campo de búsqueda mejorado -->
+<div class="d-flex justify-content-center mb-4">
+    <div class="buscar-puesto-container">
+        <input type="text" id="buscarPuesto" class="form-control buscar-puesto" placeholder="Buscar puesto..." onkeyup="filtrarPuestos()" />
+        <i class="bi bi-search buscar-icon"></i>
+    </div>
+</div>
+
+<!-- Botón para crear nuevo puesto -->
+<div style="margin: 20px;">
+    @{
+        bool esCamillo = Session["numero"]?.ToString() == "20044";
+    }
+
+    @if (esCamillo)
+    {
+        <button id="btnNuevoPuesto" class="btn btn-success" onclick="nuevoPuesto()">
+            <i class="bi bi-person-fill-add"></i>
+            <span class="texto">+ NUEVO PUESTO</span>
+        </button>
+    }
+
+</div>
+
+<!-- Modal para crear un nuevo puesto -->
+<div class="modal" id="nuevoPuestoModal" tabindex="-1" role="dialog" aria-labelledby="nuevoPuestoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="nuevoPuestoModalLabel">Nuevo Puesto</h5>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="TXTNOMBRE"><strong>Puesto:</strong></label>
+                    <input type="text" id="TXTNOMBRE" name="Puesto" placeholder="Puesto" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="TXTDESCRIPCION"><strong>Descripción:</strong></label>
+                    <textarea id="TXTDESCRIPCION" name="Descripcion" placeholder="Descripción" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="TXTFUNCIONES"><strong>Funciones:</strong></label>
+                    <textarea id="TXTFUNCIONES" name="Funciones" placeholder="Funciones" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="TXTPERFL"><strong>Perfil:</strong></label>
+                    <textarea id="TXTPERFL" name="Perfil" placeholder="Perfil" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="TXTREQUISITOS"><strong>Requisitos:</strong></label>
+                    <textarea id="TXTREQUISITOS" name="Requisitos" placeholder="Requisitos" class="form-control" rows="4"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="$('#nuevoPuestoModal').modal('hide')">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarNuevoPuesto()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Ver / Editar</th>
+                <th>PUESTO</th>
+                <th>DESCRIPCIÓN</th>
+                <th>FUNCIONES</th>
+                <th>PERFIL</th>
+                <th>REQUISITOS</th>
+            </tr>
+        </thead>
+        <tbody id="tablaPuestos">
+            @Html.Partial("_ListaPuestos", Model)
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Evento de clic para expandir/contraer toda la fila
+            $(".table").on("click", "tr", function () {
+                $(this).toggleClass("expanded");
+            });
+        });
+
+
+        // Función para filtrar puestos
+        function filtrarPuestos() {
+            let filtro = document.getElementById("buscarPuesto").value.toLowerCase();
+
+            $.ajax({
+                url: '@Url.Action("Filtrar", "Puestos")',
+                type: 'GET',
+                data: { filtro: filtro },
+                success: function (data) {
+                    $("#tablaPuestos").html(data);
+                },
+                error: function () {
+                    alert("Error al buscar.");
+                }
+            });
+        }
+
+        function nuevoPuesto() {
+            $('#nuevoPuestoModal').modal('show');
+        }
+
+        function guardarNuevoPuesto() {
+            var nombre = $("#TXTNOMBRE").val();
+            var descripcion = $("#TXTDESCRIPCION").val();
+            var funciones = $("#TXTFUNCIONES").val();
+            var perfil = $("#TXTPERFL").val();
+            var requisitos = $("#TXTREQUISITOS").val();
+            if (!nombre || !descripcion || !funciones || !perfil || !requisitos) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos incompletos',
+                    text: 'Todos los campos son obligatorios.'
+                });
+                return;
+            }
+
+            var puestoData = {
+                Nombre: nombre,
+                Descripcion: descripcion,
+                Funciones: funciones,
+                Perfil: perfil,
+                Requisitos: requisitos
+            };
+
+            $.ajax({
+                url: '@Url.Action("GuardarPuesto", "Puestos")',
+                type: 'POST',
+                data: puestoData,
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Éxito!',
+                            text: 'Puesto guardado exitosamente.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        $("#nuevoPuestoModal").modal('hide');
+                        filtrarPuestos();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error al guardar el puesto.'
+                        });
+                    }
+                }
+
+            });
+        }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        @if (TempData["SwalMessage"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: '@TempData["SwalType"]',
+                    title: '@TempData["SwalMessage"]'
+                });
+            </text>
+        }
+    });
+
+    </script>
+}

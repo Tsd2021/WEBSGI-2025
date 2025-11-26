@@ -1,0 +1,88 @@
+﻿@model IEnumerable<WEBSGI.Models.Usuarios>
+
+@{
+    ViewBag.Title = "Usuarios";
+}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+<h2 class="text-center" style="font-size: 28px; font-weight: bold; text-decoration: underline; margin-bottom: 20px;">
+    Usuarios
+</h2>
+
+<div id="page-wrapper">
+    <div class="main-page">
+        <!-- Campo de búsqueda mejorado -->
+        <div class="form-group">
+            <label for="buscarUsuario"><strong>BUSCAR:</strong></label>
+            <div class="input-group">
+                <input style="margin-bottom:20px" type="text" id="buscarUsuario" class="form-control" placeholder="Buscar por nombre..." onkeyup="buscarUsuario()">
+                <span style="margin-bottom:20px" class="input-group-text"><i class="fas fa-search"></i></span>
+            </div>
+        </div>
+
+        <!-- Tabla mejorada -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr class="text-center">
+                        <th>LEGAJO</th>
+                        <th>NOMBRE</th>
+                        <th>NIVEL</th>
+                        <th>ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaUsuarios">
+                    @foreach (var usuario in Model)
+                    {
+                        <tr>
+                            <td class="text-center">@usuario.Numero</td>
+                            <td>@usuario.Nombre</td>
+                            <td class="text-center">
+                                <select class="form-control nivel-select" data-id="@usuario.IdUsuario">
+                                    <option value="ADMINISTRADOR" @(usuario.Nivel == "ADMINISTRADOR" ? "selected" : "")>ADMINISTRADOR</option>
+                                    <option value="VISOR" @(string.IsNullOrEmpty(usuario.Nivel) || usuario.Nivel == "VISOR" ? "selected" : "")>VISOR</option>
+                                </select>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-primary guardar-nivel mt-2" style="padding: 10px 20px; font-size: 16px; border-radius: 8px;" data-id="@usuario.IdUsuario">
+                                    <i class="fas fa-save"></i> Guardar
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function buscarUsuario() {
+            var filtro = document.getElementById("buscarUsuario").value.toLowerCase();
+            var filas = document.querySelectorAll("#tablaUsuarios tr");
+
+            filas.forEach(fila => {
+                var nombre = fila.cells[1].textContent.toLowerCase();
+                fila.style.display = nombre.includes(filtro) ? "" : "none";
+            });
+        }
+
+        $(document).on("click", ".guardar-nivel", function () {
+            var id = $(this).data("id");
+            var nivel = $(this).closest("tr").find(".nivel-select").val();
+
+            $.post("@Url.Action("ActualizarNivel", "Usuarios")", { id: id, nivel: nivel }, function (data) {
+                if (data.success) {
+                    Swal.fire("Éxito", "Nivel actualizado correctamente", "success");
+                } else {
+                    Swal.fire("Error", "No se pudo actualizar el nivel", "error");
+                }
+            }).fail(function () {
+                Swal.fire("Error", "Ocurrió un problema con la petición", "error");
+            });
+        });
+    </script>
+}

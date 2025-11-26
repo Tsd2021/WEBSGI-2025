@@ -1,0 +1,317 @@
+﻿@model IEnumerable<WEBSGI.Models.DocumentosTipo>
+@{
+    ViewBag.Title = "Tipos de Documento";
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f7fa;
+    }
+
+    .table-container {
+        margin-top: 40px;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Botón de "Añadir Nuevo" */
+    #btnAddNew {
+        overflow: hidden;
+        white-space: nowrap;
+        width: 40px;
+        transition: width 0.5s ease;
+        border: none;
+        background: #008CBA;
+        color: white;
+        padding: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        border-radius: 5px;
+    }
+
+    #btnAddNew .texto {
+        opacity: 0;
+        transition: opacity 0.5s ease, margin-left 0.5s ease;
+        margin-left: 0;
+    }
+
+    #btnAddNew:hover {
+        width: 220px;
+    }
+
+    #btnAddNew:hover .texto {
+        opacity: 1;
+        margin-left: 10px;
+    }
+
+    .table th {
+        background-color: #008CBA;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .edit-link {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        text-decoration: none;
+        color: #0d6efd;
+    }
+
+    .edit-link i {
+        margin-right: 4px;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        #btnAddNew {
+            width: 100%;
+            justify-content: center;
+        }
+
+        #btnAddNew .texto {
+            opacity: 1;
+            margin-left: 8px;
+        }
+
+        .table-sm td, .table-sm th {
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        /* Mostrar una sola columna de Tipos en móviles */
+        .table thead {
+            display: none;
+        }
+
+        .table tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .table td {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border: none !important;
+        }
+
+        .table td::before {
+            content: attr(data-label);
+            font-weight: bold;
+            color: #333;
+        }
+    }
+</style>
+
+<div class="table-container">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <h4 class="mb-2">Tipos de Documento</h4>
+        <button id="btnAddNew" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#nuevoTipoModal">
+            <i class="bi bi-files"></i><span class="texto"> Añadir Nuevo</span>
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-sm align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 120px;">Acción</th>
+                    <th>Tipo</th>
+                    <th style="width: 120px;">Acción</th>
+                    <th>Tipo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Count(); i += 2)
+                {
+                    <tr>
+                        <td data-label="Acción">
+                            @if (i < Model.Count())
+                            {
+                                <a href="#" class="edit-link editTipo" data-id="@Model.ElementAt(i).ID">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </a>
+                            }
+                        </td>
+                        <td data-label="Tipo" class="tipoText" data-id="@(i < Model.Count() ? Model.ElementAt(i).ID : 0)">
+                            @if (i < Model.Count())
+                            {
+                                @Model.ElementAt(i).TIPO
+                            }
+                        </td>
+
+                        <td data-label="Acción">
+                            @if (i + 1 < Model.Count())
+                            {
+                                <a href="#" class="edit-link editTipo" data-id="@Model.ElementAt(i + 1).ID">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </a>
+                            }
+                        </td>
+                        <td data-label="Tipo" class="tipoText" data-id="@(i + 1 < Model.Count() ? Model.ElementAt(i + 1).ID : 0)">
+                            @if (i + 1 < Model.Count())
+                            {
+                                @Model.ElementAt(i + 1).TIPO
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para agregar un nuevo tipo de documento -->
+<div class="modal fade" id="nuevoTipoModal" tabindex="-1" aria-labelledby="nuevoTipoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="nuevoTipoLabel">Añadir Nuevo Tipo de Documento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="newTipoInput" class="form-control" placeholder="Nuevo Tipo Documento">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveNewTipo">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+    $(document).ready(function () {
+        // Guardar nuevo tipo vía AJAX
+        $("#saveNewTipo").click(function () {
+            var newTipo = $("#newTipoInput").val().trim();
+
+            if (newTipo === "") {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campo vacío',
+                    text: 'El campo no puede estar vacío'
+                });
+                return;
+            }
+
+            $.post("@Url.Action("AddTipo", "TiposDocumentos")", { tipo: newTipo }, function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: response.message || 'Tipo agregado correctamente'
+                    }).then(() => {
+                        $("#nuevoTipoModal").modal("hide");
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message || 'Error al agregar el tipo'
+                    });
+                }
+            });
+        });
+
+        // Activar edición
+        $(".editTipo").click(function(e) {
+            e.preventDefault();
+            var id = $(this).data("id");
+            var td = $(".tipoText[data-id='" + id + "']");
+            var currentText = td.text().trim();
+
+            td.html(`
+                <div class="input-group">
+                    <input type="text" class="form-control editInput" value="${currentText}">
+                    <button class="btn btn-primary btn-sm saveEdit" data-id="${id}">Guardar</button>
+                    <button class="btn btn-danger btn-sm deleteEdit" data-id="${id}">Eliminar</button>
+                    <button class="btn btn-secondary btn-sm cancelEdit" data-id="${id}">Cancelar</button>
+                </div>
+            `);
+        });
+
+        // Cancelar edición
+        $(document).on("click", ".cancelEdit", function() {
+            var id = $(this).data("id");
+            var td = $(".tipoText[data-id='" + id + "']");
+            var originalText = td.find(".editInput").val();
+            td.html(originalText);
+        });
+
+        // Guardar edición
+        $(document).on("click", ".saveEdit", function() {
+            var id = $(this).data("id");
+            var td = $(".tipoText[data-id='" + id + "']");
+            var newTipo = td.find(".editInput").val().toUpperCase();
+
+            $.post('@Url.Action("UpdateTipo", "TiposDocumentos")', { id: id, tipo: newTipo }, function(response) {
+                if(response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: response.message || 'Tipo actualizado correctamente'
+                    }).then(() => {
+                        td.html(newTipo);
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message || 'Error al actualizar el tipo'
+                    });
+                }
+            });
+        });
+
+        // Eliminar registro
+        $(document).on("click", ".deleteEdit", function() {
+            var id = $(this).data("id");
+
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: '¿Desea eliminar este tipo de documento?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post("@Url.Action("DeleteTipo", "TiposDocumentos")", { id: id }, function(response) {
+                        if(response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Eliminado',
+                                text: response.message || 'Tipo eliminado correctamente'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message || 'Error al eliminar el tipo'
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    });
+    </script>
+}

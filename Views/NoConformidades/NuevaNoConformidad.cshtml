@@ -1,0 +1,244 @@
+﻿@model WEBSGI.Models.NoConformidad
+@{
+    Layout = null; // Se carga dentro del modal
+    ViewBag.Title = "Nueva No Conformidad";
+}
+
+<style>
+    /* Estilo general para el modal */
+    .modal-content {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    .modal-header {
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 15px;
+    }
+
+    .modal-body {
+        font-size: 16px;
+        color: #333;
+    }
+
+    h2.text-center {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            font-weight: bold;
+            color: #444;
+        }
+
+    .form-control {
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+        font-size: 14px;
+        padding: 10px;
+        width: 100%;
+        transition: border-color 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+
+    .btn-primary {
+        background-color: #007BFF;
+        border-color: #007BFF;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+    .modal-footer {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+        .modal-footer .btn {
+            width: 120px;
+        }
+
+    .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+</style>
+
+<div class="container">
+    <h2 class="text-center">Nueva No Conformidad</h2>
+
+    @using (Html.BeginForm("NuevaNoConformidad", "NoConformidades", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <!-- 1. Número y Fecha -->
+        <div class="form-group row">
+            <div class="col-md-6">
+                <label>Número</label>
+                @Html.TextBoxFor(m => m.NUMERO, new { @class = "form-control" })
+            </div>
+            <div class="col-md-6">
+                <label>Fecha</label>
+                @Html.TextBoxFor(m => m.FECHA, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+
+        <!-- 2. ISO y Tipo -->
+<div class="form-group row">
+    <div class="col-md-6">
+        <div class="col-md-6">
+            <label>ISO</label>
+            @Html.DropDownList("NormaId", ViewBag.Normas as SelectList, "Seleccione una norma", new { @class = "form-control" })
+        </div>
+    </div>
+    <div class="col-md-6">
+        <label>Tipo</label>
+        @Html.DropDownList("NC",
+            new SelectList(new List<string> { "MENOR", "MAYOR" }),
+            "Seleccione un tipo...", new { @class = "form-control" })
+    </div>
+</div>
+
+        <!-- 3. Procedimiento -->
+        <div class="form-group row">
+            <div class="col-md-12">
+                <label>Procedimiento</label>
+                @Html.TextBoxFor(m => m.PROCEDIMIENTO, new { @class = "form-control" })
+            </div>
+        </div>
+
+        <!-- 4. Sector de Referencia y Origen -->
+<div class="form-group row">
+    <div class="col-md-6">
+        <label>Sector de Referencia</label>
+        @Html.TextBoxFor(m => m.REFIEREASECTOR, new { @class = "form-control" })
+    </div>
+    <div class="col-md-6">
+        <label>Origen</label>
+        @Html.DropDownList("ORIGEN",
+            new SelectList(new List<string> { "AUDITORIA INT.", "RECLAMOS", "AUDITORIA EXT." }),
+            "Seleccione...", new { @class = "form-control" })
+    </div>
+</div>
+
+        <!-- 5. Descripción -->
+        <div class="form-group row">
+            <div class="col-md-12">
+                <label>Descripción</label>
+                @Html.TextAreaFor(m => m.DESCRIPCION, new { @class = "form-control", rows = 3 })
+            </div>
+        </div>
+
+        <!-- 6. Causa -->
+        <div class="form-group row">
+            <div class="col-md-12">
+                <label>Causa</label>
+                @Html.TextAreaFor(m => m.CAUSA, new { @class = "form-control", rows = 3 })
+            </div>
+        </div>
+
+        <!-- 7. Acción Inmediata -->
+        <div class="form-group row">
+            <div class="col-md-12">
+                <label>Acción Inmediata</label>
+                @Html.TextAreaFor(m => m.CAUSAACCIONINMEDIATA, new { @class = "form-control", rows = 3 })
+            </div>
+        </div>
+
+        <!-- 8. Plazo de Cierre y Cerrada en Fecha -->
+<div class="form-group row">
+    <div class="col-md-6">
+        <label>Plazo de Cierre</label>
+        @Html.TextBoxFor(m => m.PLAZOCIERRE, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+    </div>
+    <div class="col-md-6">
+        <label>Cerrada en Fecha</label>
+        @Html.DropDownList("ACCIONCERRADAENFECHA",
+            new SelectList(new List<string> { "SI", "NO" }),
+            "Seleccione...", new { @class = "form-control" })
+    </div>
+</div>
+
+        <!-- 9. Acción Correctiva -->
+        <div class="form-group row">
+            <div class="col-md-12">
+                <label>Acción Correctiva</label>
+                @Html.TextAreaFor(m => m.ACCIONCORRECTIVA, new { @class = "form-control", rows = 3 })
+            </div>
+        </div>
+
+        <!-- 10. Responsable de la Ejecución y Seguimiento -->
+        <div class="form-group row">
+            <div class="col-md-12">
+                <label>Responsable de la Ejecución y Seguimiento</label>
+                @Html.TextBoxFor(m => m.ACCIONRESPONSABLE, new { @class = "form-control" })
+            </div>
+        </div>
+
+        <!-- 11. Estado y Fecha de Cierre -->
+<div class="form-group row">
+
+    <div class="col-md-6">
+        <label>Estado</label>
+        @Html.DropDownList("ESTADO",
+            new SelectList(new List<string> { "ABIERTA", "CERRADA", "ANULADA" }),
+            "Seleccione...", new { @class = "form-control" })
+    </div>
+    <div class="col-md-6">
+        <label>Fecha de Cierre</label>
+        @Html.TextBoxFor(m => m.CIERRE, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+    </div>
+</div>
+
+        <!-- 12. Observaciones -->
+        <div class="form-group row">
+            <div class="col-md-12">
+                <label>Observaciones</label>
+                @Html.TextAreaFor(m => m.OBSERVACIONES, new { @class = "form-control", rows = 3 })
+            </div>
+        </div>
+
+        <!-- 13. Botones -->
+        <div class="form-group text-center">
+            <input type="submit" value="Guardar" class="btn btn-primary" />
+            <button type="button" class="btn btn-secondary btn-cancel">Cancelar</button>
+        </div>
+    }
+</div>
+
+<script>
+    $(".btn-cancel").click(function () {
+        $("#nonConformidadModal").modal("hide");
+    });
+</script>

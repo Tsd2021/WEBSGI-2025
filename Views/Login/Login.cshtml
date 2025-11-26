@@ -1,0 +1,567 @@
+﻿@model WEBSGI.Models.ViewModel.LoginViewModel
+
+@{
+    ViewBag.Title = "Login";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>SGI | LOGIN</title>
+    <link rel="icon" type="image/x-icon" href="~/IMGs/logo.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome.css" rel="stylesheet" />
+
+    <style>
+        /* Fondo oscuro para overlay */
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85); /* Fondo más oscuro */
+            z-index: 30;
+        }
+
+        /* Estilo para el botón de cerrar "X" */
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: #000;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s ease;
+        }
+        .close-btn:hover {
+            color: #ff0000;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+
+        .modal-dialog {
+            margin-top: 5%;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        /* Contenedor del modal */
+        .modal-content-container {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 31;
+            width: auto;
+        }
+
+        /* Estilo general para el contenido del modal */
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Estilo del header del modal */
+        .modal-header {
+            border-bottom: 1px solid #e9ecef;
+            background-color: #990000;
+            color: #fff;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            padding: 20px;
+        }
+
+        /* Estilo del pie del modal */
+        .modal-footer {
+            border-top: 1px solid #e9ecef;
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 15px 0;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+
+        .modal-footer .btn-success {
+        background-color: #28a745;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+        width: 100%;
+        border: none;
+    }
+
+            .modal-footer .btn-success:hover {
+                background-color: #218838;
+            }
+
+        .close {
+            color: #fff;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+            .close:hover,
+            .close:focus {
+                color: #ddd;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+        /* Botón primario */
+        .modal-footer .btn-primary {
+            width: 100%;
+            padding: 10px;
+        }
+
+        .modal-footer .btn-primary:hover {
+            background-color: #0062cc;
+        }
+
+        /* Estilo para el cuerpo del modal */
+        .modal-body {
+            text-align: center;
+            padding: 30px;
+        }
+
+        /* Icono dentro del modal */
+        .modal-icon {
+            margin: 15px 0;
+        }
+
+        /* Fondo de la página */
+        body {
+            background-image: url('@Url.Content("~/IMGs/Fondos/wtcTecnisegur.JPG")');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+
+        /* Estilo del contenedor de login */
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+        }
+
+        .login-logo {
+            width: 100%;
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+            .input-group input {
+                width: 100%; /* Asegura que ambos campos tengan el mismo tamaño */
+                padding: 12px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                font-size: 16px;
+            }
+
+        .btn-login {
+            width: 100%;
+            background-color: #990000;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .btn-login:hover {
+            background-color: #7d0000;
+        }
+
+        .forgot-password {
+            display: block;
+            margin-top: 10px;
+            text-decoration: none;
+            color: blue;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+        #spinner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none; /* oculto por defecto */
+        }
+    </style>
+
+</head>
+<body>
+    <div class="login-container">
+        <img src="~/IMGs/LogoOriginal.png" alt="Logo" class="login-logo">
+        <h2>SGI</h2>
+        @using (Html.BeginForm("Login", "Login", new { area = "" }, FormMethod.Post, null))
+        {
+            @Html.AntiForgeryToken()
+            <div class="input-group">
+                <label for="Username">Usuario: </label><br />
+                @Html.TextBoxFor(m => m.Username, new { @id = "Username", required = "required" })
+                @Html.ValidationMessageFor(m => m.Username)
+            </div>
+            <div class="input-group">
+                <label for="Password">Contraseña: </label>
+                @Html.PasswordFor(m => m.Password, new { @id = "Password", required = "required" })
+                @Html.ValidationMessageFor(m => m.Password)
+            </div>
+            <button type="submit" class="btn-login">Ingresar</button>
+        }
+        <a href="#" class="forgot-password" id="btnMostrarRecuperacion">¿Olvidaste tu contraseña?</a>
+        <img src="~/IMGs/293_18788-9001-14001-27001 2013 FCR-eiC_LOGO-1.png" alt="Certificación" width="100%" style="margin-top: 20px;">
+    </div>
+
+    <!-- Modal para recuperación de contraseña -->
+    <div id="overlay" class="overlay"></div>
+
+    <div id="modalRecuperacion" class="modal-content-container">
+        <div class="modal-content">
+            <button class="close-btn" id="cerrarModal">&times;</button>
+            <h3>Recuperar Contraseña</h3>
+            <form id="recuperacionForm">
+                <div class="input-group">
+                    <label for="numeroEmpleado">Número de Empleado</label>
+                    <input type="text" name="numero" id="numeroEmpleado" placeholder="Ingrese su número de Empleado" required>
+                </div>
+                <button type="submit" class="btn-login">Recuperar</button>
+            </form>
+        </div>
+    </div>
+    <div id="spinner-container">
+        <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+
+    <!-- Modal para mostrar mensajes -->
+    <div class="modal" id="mensajeModal" tabindex="-1" role="dialog" aria-labelledby="mensajeModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #343a40; color: #fff;">
+                    <h5 class="modal-title" id="mensajeModalLabel">Atención</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4 modal-icon">
+                        <i id="mensajeIcono" class="fas fa-exclamation-circle text-danger" style="font-size: 3rem;"></i>
+                    </div>
+                    <p id="mensajeModalTexto" class="text-center font-weight-bold" style="font-size: 18px; color: #333;"></p>
+                </div>
+                <div class="modal-footer" style="background-color: #f1f1f1; border-top: 1px solid #ddd;">
+                    <button type="button" class="btn-login" id="btnAceptarModal">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para cambio de contraseña -->
+    <div class="modal" id="modalCambioContrasena" tabindex="-1" role="dialog" aria-labelledby="modalCambioContrasenaLabel">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 10px;">
+                <div class="modal-header" style="background-color: #990000; color: #fff; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                    <h5 class="modal-title" id="modalCambioContrasenaLabel">Cambio de Contraseña</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="formCambioContraseña">
+                        <div class="input-group mb-3">
+                            <label for="newPassword" style="width: 100%;">Nueva Contraseña</label>
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Nueva contraseña" required>
+                        </div>
+                        <div class="input-group mb-3">
+                            <label for="confirmPassword" style="width: 100%;">Confirmar</label> <!-- Cambié el texto de 'Confirmar Nueva Contraseña' a 'Confirmar' -->
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirmar nueva contraseña" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-success" id="btnGuardarContrasena">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            $('form').on('submit', function () {
+                // Mostrar el spinner
+                $('#spinner-container').css('display', 'flex');
+            });
+    // Obtener los valores desde TempData
+    var mostrarModalCambio = '@TempData["MostrarModalCambio"]'.trim().toLowerCase();
+
+    // Verificar si el valor de TempData es 'true' y abrir el modal
+    if (mostrarModalCambio === 'true') {
+
+
+        // Usar jQuery para abrir el modal si la condición se cumple
+        $('#modalCambioContrasena').modal({
+            backdrop: 'static', // Asegura que no se pueda cerrar el modal haciendo clic fuera de él
+            keyboard: false // Impide el cierre con la tecla ESC
+        }).modal('show').attr('aria-hidden', 'false');
+
+    }
+     $('#btnGuardarContrasena').click(function () {
+        var newPassword = $('#newPassword').val();  // Obtener nueva contraseña
+        var confirmPassword = $('#confirmPassword').val();  // Obtener confirmar contraseña
+
+        // Validar que las contraseñas no estén vacías
+        if (newPassword === "" || confirmPassword === "") {
+            Swal.fire('Error', 'Por favor, ingresa ambas contraseñas.', 'error');
+            return;
+        }
+
+        // Validar que las contraseñas coincidan
+        if (newPassword !== confirmPassword) {
+            Swal.fire('Error', 'Las contraseñas no coinciden.', 'error');
+            return;
+        }
+
+        // Validar la longitud mínima de la nueva contraseña
+        if (newPassword.length < 6) {
+            Swal.fire('Error', 'La contraseña debe tener al menos 6 caracteres.', 'error');
+            return;
+         }
+
+
+
+        // Enviar los datos con AJAX
+         $.ajax({
+            url: '@Url.Action("GenerarNuevaContraseña", "Login")', // Acción del controlador Login
+            type: 'POST',
+            data: {
+                nuevaContraseña: newPassword,  // Nueva contraseña
+                confirmarContraseña: confirmPassword // Confirmar nueva contraseña
+            },
+            success: function (response) {
+                // Cuando la respuesta se recibe con éxito, cerramos el SweetAlert de carga
+                // Cerrar el SweetAlert de carga
+
+                if (response.success) {
+                    // Si la respuesta fue exitosa, mostrar mensaje y redirigir
+                    Swal.fire('Éxito', response.message, 'success').then(function () {
+                        window.location.href = '@Url.Action("Index", "Inicio")'; // Redirigir al Index
+                    });
+                } else {
+                    // Si hubo un error, mostrar el mensaje de error
+                    Swal.fire('Error', response.message, 'error');
+                }
+            },
+            error: function () {
+                // Si hubo un error en la solicitud, cerrar el SweetAlert y mostrar un mensaje de error
+
+                Swal.fire('Error', 'Hubo un problema al actualizar la contraseña. Intenta nuevamente.', 'error');
+            }
+        });
+    });
+
+});
+
+
+
+
+
+
+        $(document).ready(function () {
+    // Obtener los valores desde TempData
+    var mostrarModalCambio = '@TempData["MostrarModalCambio"]'.trim().toLowerCase();
+
+    // Verificar si el valor de TempData es 'true' y abrir el modal
+    if (mostrarModalCambio === 'true') {
+        console.log("Mostrar modal de cambio de contraseña...");
+
+        // Usar jQuery para abrir el modal si la condición se cumple
+        $('#modalCambioContrasena').modal({
+            backdrop: 'static', // Asegura que no se pueda cerrar el modal haciendo clic fuera de él
+            keyboard: false // Impide el cierre con la tecla ESC
+        }).modal('show').attr('aria-hidden', 'false');
+
+        console.log("Modal abierto: ", $('#modalCambioContrasena').hasClass('show'));
+    }
+});
+
+
+  $(document).ready(function () {
+
+    // Manejo del overlay y modal de recuperación
+    $('#btnMostrarRecuperacion').click(function (e) {
+        e.preventDefault();
+        $('#overlay').fadeIn();
+        $('#modalRecuperacion').fadeIn();
+    });
+
+    $('#cerrarModal').click(function () {
+        $('#overlay').fadeOut();
+        $('#modalRecuperacion').fadeOut();
+    });
+
+    // Enviar la solicitud de recuperación
+    $('#recuperacionForm').submit(function (e) {
+        e.preventDefault();
+
+        // Obtener el número de empleado desde el formulario
+        var numeroEmpleado = $('#numeroEmpleado').val();
+
+        // Validar que el campo no esté vacío
+        if (!numeroEmpleado) {
+            mostrarSweetAlert('warning', 'Atención', 'Por favor, ingresa tu número de empleado.');
+            return;
+        }
+
+        // Realizar la solicitud AJAX
+        $.ajax({
+            url: '@Url.Action("EnviarCorreoRecuperacion", "Login")', // Ruta al controlador
+            type: 'GET',
+            data: { numero: numeroEmpleado }, // Enviar el número de empleado
+            success: function (response) {
+                // Verificar si la respuesta fue exitosa
+                if (response.success) {
+                    mostrarSweetAlert('success', '¡Éxito!', response.message);
+                } else {
+                    mostrarSweetAlert('error', 'Error', response.message);
+                }
+
+                // Cerrar el modal después de la respuesta
+                $('#overlay').fadeOut();
+                $('#modalRecuperacion').fadeOut();
+            },
+            error: function () {
+                mostrarSweetAlert('error', 'Error', 'Ocurrió un error al intentar enviar el correo. Por favor, intenta nuevamente.');
+            }
+        });
+    });
+
+    // Función para mostrar SweetAlert
+    function mostrarSweetAlert(icon, title, text) {
+        Swal.fire({
+            icon: icon,
+            title: title,
+            text: text,
+            scrollbarPadding: false,
+            didClose: () => { document.body.style.paddingRight = '0px'; }
+        });
+    }
+});
+
+    </script>
+
+
+    @{
+        var errorMessage = TempData["ErrorMessage"];
+        var successMessage = TempData["SuccessMessage"];
+        var alertType = TempData["AlertType"];
+        var redirectUrl = TempData["RedirectUrl"];
+        var mostrarModalCambio = TempData["MostrarModalCambio"];
+    }
+
+    @if (errorMessage != null)
+    {
+        <script>
+        $(document).ready(function () {
+            Swal.fire({
+                icon: '@alertType', // Tipo de alerta (success, error, warning, etc.)
+                title: '¡Error!',
+                text: '@errorMessage',
+                scrollbarPadding: false,
+                didClose: () => { document.body.style.paddingRight = '0px'; }
+            });
+        });
+        </script>
+    }
+
+    @if (successMessage != null)
+    {
+        <script>
+        $(document).ready(function () {
+            Swal.fire({
+                icon: '@alertType', // Tipo de alerta (success)
+                title: '¡Éxito!',
+                text: '@successMessage',
+                scrollbarPadding: false,
+                didClose: () => { document.body.style.paddingRight = '0px'; }
+            });
+        });
+        </script>
+    }
+
+    @if (redirectUrl != null)
+    {
+        <script>
+        $(document).ready(function () {
+            window.location.href = '@redirectUrl'; // Redirige a una URL segura
+        });
+        </script>
+    }
+
+    @if (mostrarModalCambio != null && mostrarModalCambio.ToString() == "true")
+    {
+        <script>
+            $(document).ready(function () {
+                // Abrir el modal de cambio de contraseña si el valor es 'true'
+                $('#modalCambioContrasena').modal('show');
+            });
+        </script>
+    }
+
+</body>
+</html>

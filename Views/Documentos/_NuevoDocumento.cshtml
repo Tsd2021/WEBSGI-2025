@@ -1,0 +1,130 @@
+﻿@model WEBSGI.Models.ViewModel.DocumentoViewModel
+
+@{
+    ViewBag.Title = "DocumentoCreate";
+}
+
+
+<style>
+    .modal-dialog {
+        margin-top: 80px;
+    }
+
+    .modal {
+        z-index: 9999 !important;
+    }
+
+    .modal-backdrop {
+        z-index: 9998 !important;
+    }
+</style>
+<div class="modal-header">
+    <h5 class="modal-title">Nuevo Documento</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+</div>
+
+<div class="modal-body">
+    @using (Html.BeginForm("NuevoDocumentoPartial", "Documentos", FormMethod.Post, new { enctype = "multipart/form-data", id = "formNuevoDocumento" }))
+    {
+        @Html.HiddenFor(m => m.Documento.ID)
+        <div class="row">
+            <div class="col-md-5">
+                <div class="form-group">
+                    <strong>Título:</strong>
+                    @Html.TextBoxFor(m => m.Documento.TITULO, new { @class = "form-control", placeholder = "Título" })
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="form-group">
+                    <strong>Revisión:</strong>
+                    @Html.TextBoxFor(m => m.Documento.REVISION, new { @class = "form-control", placeholder = "Revisión" })
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-5">
+                <div class="form-group">
+                    <strong>Tipo:</strong>
+                    @Html.DropDownListFor(m => m.SelectedTipo, Model.Tipos, new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="form-group">
+                    <strong>Estado:</strong>
+                    @Html.DropDownListFor(m => m.SelectedEstado, Model.Estados, new { @class = "form-control" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <strong>Archivo:</strong>
+            <input type="file" name="fileUpload" class="form-control" style="background-color:#FFF;" />
+        </div>
+        <div class="form-group">
+            <strong>Observaciones:</strong>
+            @Html.TextAreaFor(m => m.Documento.OBSERVACIONES, new { @class = "form-control", placeholder = "Observaciones", rows = "4" })
+        </div>
+
+        <div class="form-group">
+            <strong>Carpeta:</strong>
+            <textarea class="form-control folder-route-input" readonly rows="3">@ViewBag.FolderRoute</textarea>
+            @Html.HiddenFor(m => m.Documento.ID)
+        </div>
+
+
+        <div class="form-group">
+            <strong>Visibilidad para los puestos:</strong><br />
+
+
+
+            <!-- Checkbox para seleccionar todos -->
+            <label class="form-check-label">
+                <input type="checkbox" id="chkTodos" name="chkTodos" class="form-check-input" /> TODOS
+            </label>
+
+            <br /><br />
+
+            <!-- Contenedor de los puestos -->
+            <div id="panelPuestos" style="width: 100%; background-color: #FFF; overflow-y: auto; height: 400px; border: 1px solid #ccc; padding: 10px;">
+                @if (Model.Puestos != null && Model.Puestos.Any())
+                {
+                    foreach (var item in Model.Puestos)
+                    {
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" name="PuestosSeleccionados" value="@item.Value" @(item.Selected ? "checked" : "") class="form-check-input" />
+                                @item.Text
+                            </label>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No hay puestos disponibles.</p>
+                }
+
+
+            </div>
+
+
+
+            <!-- Script para marcar/desmarcar todos -->
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    $("#chkTodos").change(function () {
+                        var isChecked = $(this).is(":checked");
+                        // Marcar o desmarcar todos los checkboxes dentro de #panelPuestos
+                        $("#panelPuestos input[name='PuestosSeleccionados']").prop("checked", isChecked);
+                    });
+                });
+            </script>
+
+        </div>
+
+        <div class="modal-footer">
+            <button type="submit" form="formNuevoDocumento" class="btn btn-primary">Crear Documento</button>
+        </div>
+    }
+</div>
+

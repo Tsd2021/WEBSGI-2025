@@ -1,0 +1,18 @@
+﻿@model IEnumerable<WEBSGI.Models.ViewModel.PuestosViewModel>
+
+@foreach (var item in Model)
+{
+    <tr>
+        <td>
+            <a href="@Url.Action("Editar", "Puestos", new { id = item.ID })" class="btn btn-primary btn-sm">
+                <i class="bi bi-pencil-square"></i> Editar
+            </a>
+        </td>
+
+        <td>@item.PUESTO</td>
+        <td>@item.DESCRIPCION</td>
+        <td>@item.FUNCIONES</td>
+        <td>@item.PERFIL</td>
+        <td>@item.REQUISITOS</td>
+    </tr>
+}

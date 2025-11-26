@@ -1,0 +1,61 @@
+﻿
+@model List<Dictionary<string, object>>
+
+@{
+    var registrosOrdenados = (Model ?? new List<Dictionary<string, object>>())
+        .OrderByDescending(r => Convert.ToDateTime(r["Fecha"]))
+        .ToList();
+}
+
+<table class="table table-striped table-bordered">
+    <thead class="thead-dark">
+        <tr>
+            <th>Usuario</th>
+            <th>Archivo Movimiento</th>
+            <th>Fecha</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var log in registrosOrdenados)
+        {
+            <tr>
+                <td>@log["Usuario"]</td>
+                <td>@log["ArchivoMovimiento"]</td>
+                <td>
+                    @string.Format("{0:dd/MM/yyyy HH:mm:ss}", Convert.ToDateTime(log["Fecha"]))
+                </td>
+            </tr>
+        }
+        @if (!registrosOrdenados.Any())
+        {
+            <tr>
+                <td colspan="3" class="text-center text-muted">No se encontraron registros</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+$(".card").on("click", function () {
+    var cardId = $(this).data("id");
+
+    $.ajax({
+        url: '@Url.Action("GetLogs", "Inicio")',
+        data: { page: 1 },
+        type: 'GET',
+        success: function (response) {
+            // Mostrar el modal
+            $("#logsModal .modal-body").html(response);
+            $("#logsModal").modal("show");
+        },
+        error: function (xhr, status, error) {
+            console.log("Error al cargar los logs: " + error);
+        }
+    });
+});
+</script>
+

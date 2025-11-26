@@ -1,0 +1,160 @@
+﻿@model WEBSGI.Models.NoConformidad
+@{
+    Layout = null; // Se carga dentro del modal
+    ViewBag.Title = "Nueva Oportunidad de Mejora";
+}
+
+<div class="container">
+    <h2 class="text-center">Nueva Oportunidad de Mejora</h2>
+
+    @using (Html.BeginForm("NuevaOportunidadMejora", "OportunidadMejora", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <!-- 1. Número y Fecha -->
+        <div class="form-group row">
+            <div class="col-md-6">
+                <label>Número</label>
+                @Html.TextBoxFor(m => m.NUMERO, new { @class = "form-control" })
+            </div>
+            <div class="col-md-6">
+                <label>Fecha</label>
+                @Html.TextBoxFor(m => m.FECHA, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+
+        <!-- 2. ISO y Tipo -->
+        <div class="form-group row">
+            <div class="col-md-6">
+                <div class="col-md-6">
+                    <label>ISO</label>
+                    @Html.DropDownList("NormaId", ViewBag.Normas as SelectList, "Seleccione una norma", new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label>Tipo</label>
+                @Html.DropDownList("NC",
+                    new SelectList(new List<string> { "MENOR", "MAYOR" }),
+                    "Seleccione un tipo...", new { @class = "form-control" })
+            </div>
+        </div>
+
+        <!-- 3. Refiere a Sector y Punto de la Norma -->
+        <div class="form-group row">
+            <div class="col-md-6">
+                <label>Refiere a Sector</label>
+                @Html.TextBoxFor(m => m.REFIEREASECTOR, new { @class = "form-control" })
+            </div>
+            <div class="col-md-6">
+                <label>Punto de la Norma</label>
+                @Html.TextBoxFor(m => m.PROCEDIMIENTO, new { @class = "form-control" })
+            </div>
+        </div>
+
+        <!-- 4. Origen -->
+        <div class="form-group">
+            <label>Origen</label>
+            @Html.DropDownList("ORIGEN",
+                new SelectList(new List<string> { "AUDITORIA INT.", "RECLAMOS", "AUDITORIA EXT." }),
+                "Seleccione...", new { @class = "form-control" })
+        </div>
+
+        <!-- 5. Descripción -->
+        <div class="form-group">
+            <label>Descripción</label>
+            @Html.TextAreaFor(m => m.DESCRIPCION, new { @class = "form-control", rows = 3 })
+        </div>
+
+        <!-- 6. Acción -->
+        <div class="form-group">
+            <label>Acción</label>
+            @Html.TextAreaFor(m => m.CAUSAACCIONINMEDIATA, new { @class = "form-control", rows = 3 })
+        </div>
+
+        <!-- 7. Responsable de la Ejecución y Seguimiento -->
+        <div class="form-group">
+            <label>Responsable de la Ejecución y Seguimiento</label>
+            @Html.TextBoxFor(m => m.ACCIONRESPONSABLE, new { @class = "form-control" })
+        </div>
+
+        <!-- 8. Plazo de Cierre y Cerrada en Fecha -->
+        <div class="form-group row">
+            <div class="col-md-6">
+                <label>Plazo de Cierre</label>
+                @Html.TextBoxFor(m => m.PLAZOCIERRE, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+            </div>
+            <div class="col-md-6">
+                <label>Cerrada en Fecha</label>
+                @Html.DropDownListFor(m => m.ACCIONCERRADAENFECHA,
+                    new SelectList(new List<string> { "SI", "NO" }),
+                    "Seleccione...", new { @class = "form-control" })
+            </div>
+        </div>
+
+        <!-- 9. Estado y Fecha de Cierre -->
+        <div class="form-group row">
+            <div class="col-md-6">
+                <label>Estado</label>
+                @Html.DropDownListFor(m => m.ESTADO,
+                    new SelectList(new List<string> { "ABIERTA", "CERRADA", "ANULADA" }),
+                    "Seleccione...", new { @class = "form-control" })
+            </div>
+            <div class="col-md-6">
+                <label>Fecha de Cierre</label>
+                @Html.TextBoxFor(m => m.CIERRE, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+
+        <!-- 10. Observaciones -->
+        <div class="form-group">
+            <label>Observaciones</label>
+            @Html.TextAreaFor(m => m.OBSERVACIONES, new { @class = "form-control", rows = 3 })
+        </div>
+
+        <!-- Botones -->
+        <div class="form-group text-center">
+            <input type="submit" value="Guardar" class="btn btn-primary" />
+            <button type="button" class="btn btn-secondary btn-cancel">Cancelar</button>
+        </div>
+    }
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Se asume que este modal se llama "oportunidadModal"
+    $(".btn-cancel").click(function () {
+        $("#oportunidadModal").modal("hide");
+    });
+</script>
+@{
+    var mensaje = TempData["Mensaje"] as string;
+    var mensajeTipo = TempData["MensajeTipo"] as string;
+}
+
+@section Scripts
+{
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <script>
+            // Mostrar mensaje de acuerdo con el tipo
+            var tipo = '@mensajeTipo';
+            var mensaje = '@mensaje';
+
+            if (tipo === "success") {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: mensaje,
+                    confirmButtonText: 'Aceptar'
+                });
+            } else if (tipo === "error") {
+                Swal.fire({
+                    icon: 'error',
+                    title: '¡Error!',
+                    text: mensaje,
+                    confirmButtonText: 'Aceptar'
+                });
+            }
+        </script>
+    }
+}

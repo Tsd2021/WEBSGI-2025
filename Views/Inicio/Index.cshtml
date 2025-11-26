@@ -1,0 +1,204 @@
+﻿@model List<Dictionary<string, object>>
+@using WEBSGI.Repositorio;
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Inicio";
+    var repositorioPermisos = new RepositorioUsuarios();
+    int idPuesto = Convert.ToInt32(Session["PUESTOID"]);
+    bool esAdministrador = Session["NIVEL"] != null && Session["NIVEL"].ToString() == "ADMINISTRADOR";
+
+    Func<int, bool> tienePermiso = (acceso) =>
+    {
+        return esAdministrador || repositorioPermisos.VerificarPermiso(idPuesto, acceso);
+    };
+}
+
+@section styles {
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+
+    <style>
+        /* 🔹 Modal personalizado: 600px de ancho */
+        .modal-dialog.modal-custom {
+            max-width: 600px;
+        }
+
+        body.inicio-page {
+            background-image: url('@Url.Content("~/IMGs/Fondos/WIK_8188.JPG")');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        /* Cards */
+        .log-card { cursor: pointer; transition: transform 0.3s ease; }
+        .log-card:hover { transform: scale(1.05); }
+
+        /* Modales: quitamos el max-width genérico */
+        .modal-body { max-height: 80vh; overflow-y: auto; }
+
+        /* Carruseles */
+        .carousel-container { width: 100%; }
+        .carousel-item video {
+            width: 100%; height: auto; max-height: 400px;
+            object-fit: cover; border-radius: 10px;
+        }
+
+        /* Responsive ajustes */
+        @@media (max-width: 768px) {
+            .carousel-item video { max-height: 250px; }
+            h1, h2, h3 { font-size: 1.2rem; }
+        }
+    </style>
+}
+
+
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Bienvenido @Session["NOMBREUSUARIO"]</h1>
+
+    @if (esAdministrador)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="card log-card shadow-sm text-center" onclick="abrirModal()" style="max-width:300px;">
+                <img src="~/IMGs/userlogin.jpg" class="card-img-top img-fluid" alt="Logs del Sistema" />
+                <div class="card-body">
+                    <h4 class="card-title">Ver Logs</h4>
+                    <h3>@ViewBag.TotalRegistros</h3>
+                    <p class="text-success">+@ViewBag.TotalRegistros3Dias Últimos 3 días</p>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <!-- Carrusel 1 -->
+            <div class="col-12 col-md-6">
+                <div class="carousel-container">
+                    <div id="videoCarousel1">
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <video muted playsinline>
+                                    <source src="~/IMGs/Videos/reciclaje enero-1.mp4" type="video/mp4" />
+                                </video>
+                            </div>
+                            <div class="carousel-item">
+                                <video muted playsinline>
+                                    <source src="~/IMGs/Videos/convenios.mp4" type="video/mp4" />
+                                </video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carrusel 2 -->
+            <div class="col-12 col-md-6">
+                <div class="carousel-container">
+                    <div id="videoCarousel2">
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <video muted playsinline>
+                                    <source src="~/IMGs/Videos/convenios.mp4" type="video/mp4" />
+                                </video>
+                            </div>
+                            <div class="carousel-item">
+                                <video muted playsinline>
+                                    <source src="~/IMGs/Videos/reciclaje enero-1.mp4" type="video/mp4" />
+                                </video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal Logs -->
+<div class="modal fade" id="logsModal" tabindex="-1" aria-labelledby="logsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-custom modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title w-100 text-center" id="logsModalLabel">Logs del Sistema</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="logTableContainer"></div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script>
+        // Abrir modal y cargar logs
+        function abrirModal() {
+            var modal = new bootstrap.Modal(document.getElementById('logsModal'));
+            modal.show();
+            cargarLogs(1);
+        }
+
+        function cargarLogs(page) {
+            Swal.fire({
+                title: 'Cargando...',
+                text: 'Estamos obteniendo los logs, por favor espere.',
+                icon: 'info',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            $.ajax({
+                url: '@Url.Action("GetLogs", "Inicio")',
+                data: { page: page },
+                type: 'GET',
+                success: function (response) {
+                    $("#logTableContainer").html(response);
+                    Swal.close();
+                },
+                error: function () {
+                    Swal.fire('Error', 'Hubo un error al cargar los logs.', 'error');
+                }
+            });
+        }
+
+        // Mensajes flash
+        $(document).ready(function () {
+            var mensaje = '@TempData["Mensaje"]';
+            var tipoMensaje = '@TempData["TipoMensaje"]';
+            if (mensaje) {
+                Swal.fire({
+                    title: tipoMensaje === 'success' ? 'Éxito' : 'Aviso',
+                    text: mensaje,
+                    icon: tipoMensaje === 'success' ? 'success' : 'warning',
+                    confirmButtonText: 'OK'
+                });
+            }
+
+            // 👇 Agregar clase al body solo en esta vista
+            $("body").addClass("inicio-page");
+        });
+
+        // 👇 FIX: limpiar backdrop y reactivar dropdown al cerrar modal
+        $('#logsModal').on('hidden.bs.modal', function () {
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open').css('padding-right', '');
+
+            // Reactivar dropdowns
+            var dropdownToggleList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
+            dropdownToggleList.map(function (el) {
+                return new bootstrap.Dropdown(el);
+            });
+        });
+    </script>
+}
+

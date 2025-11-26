@@ -1,0 +1,476 @@
+﻿@model WEBSGI.Models.ViewModel.DocumentoViewModel
+@if (!ViewContext.IsChildAction)
+{
+    Layout = null;
+}
+@{
+
+    ViewBag.Title = "Editar Documento";
+}
+<style>
+    .modal-dialog {
+        margin-top: 80px; 
+    }
+
+.modal {
+    z-index: 1050; /* valor estándar */
+}
+.modal-backdrop {
+    z-index: 1040; /* valor estándar */
+}
+
+
+    .modal-dialog.modal-custom-width {
+        max-width: 1200px !important; 
+        margin: 20px auto;
+    }
+
+    .modal-footer {
+        border-top: none;
+        padding-top: 15px;
+    }
+
+    .modal-body {
+        padding: 30px 25px;
+        background: #f9f9f9;
+        border-radius: 4px;
+    }
+
+    .col-md-8 {
+        padding-left: 100px;
+    }
+
+    .modal-header {
+        background: #007bff;
+        color: #fff;
+        border-bottom: none;
+    }
+
+        .modal-header h5 {
+            margin: 0;
+            font-weight: bold;
+        }
+
+    #folderTree {
+        border: 1px solid #ddd;
+        padding: 10px;
+        background: #fff;
+        height: 450px;
+        overflow-y: auto;
+    }
+
+    #loadingOverlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 9999;
+    }
+
+        #loadingOverlay .loading-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+</style>
+
+
+<div class="modal-header">
+    <h5 class="modal-title">Editar Documento</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+</div>
+
+<div id="loadingOverlay">
+    <div class="loading-content">
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 100%; height: 30px;">
+                Cargando...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Body -->
+<div class="modal-body">
+
+    @using (Html.BeginForm("SaveDocument", "Documentos", FormMethod.Post, new { enctype = "multipart/form-data", id = "formEditarDocumento" }))
+    {
+        @Html.HiddenFor(m => m.Documento.ID)
+        <div class="row">
+            <!-- Columna Izquierda: Tree view -->
+            <div class="col-md-4">
+                <div>
+                    <label>Selecciona la carpeta destino (tree view):</label>
+                    <div id="folderTreeEdit"></div>
+                    <!-- Campo oculto para almacenar el ID de la carpeta seleccionada -->
+                    <input type="hidden" id="SelectedFolderId" name="SelectedFolderId" value="@Model.Documento.IDCARPETA" />
+                </div>
+            </div>
+            <!-- Columna Derecha: Formulario -->
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <strong>Título:</strong>
+                            @Html.TextBoxFor(m => m.Documento.TITULO, new { @class = "form-control", placeholder = "Título" })
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <strong>Revisión:</strong>
+                            @Html.TextBoxFor(m => m.Documento.REVISION, new { @class = "form-control", placeholder = "Revisión" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <strong>Tipo:</strong>
+                            @Html.DropDownListFor(m => m.SelectedTipo, Model.Tipos, new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <strong>Estado:</strong>
+                            @Html.DropDownListFor(m => m.SelectedEstado, Model.Estados, new { @class = "form-control" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <strong>Archivo:</strong>
+                    <input type="file" name="fileUpload" class="form-control" style="background-color:#FFF;" />
+                </div>
+
+                <div class="form-group">
+                    <strong>Observaciones:</strong>
+                    @Html.TextAreaFor(m => m.Documento.OBSERVACIONES, new { @class = "form-control", placeholder = "Observaciones", rows = "4" })
+                </div>
+
+                <div class="form-group">
+                    <strong>Carpeta:</strong>
+                    <!-- Se muestra la ruta de la carpeta (solo lectura) -->
+                    <textarea id="folderRoute" class="form-control folder-route-input" readonly rows="2">@ViewBag.FolderRoute</textarea>
+                    <!-- Campo oculto para almacenar el ID de la carpeta seleccionada -->
+                    <input type="hidden" id="SelectedFolderId" name="SelectedFolderId" value="@Model.Documento.IDCARPETA" />
+                    <!-- Campo oculto para almacenar el nombre o ruta de la carpeta -->
+                    <input type="hidden" id="Carpeta" name="Carpeta" value="@Model.Carpeta" />
+                </div>
+
+
+                <div class="form-group">
+                    <strong>Visibilidad para los puestos:</strong><br />
+
+
+
+                    <label class="form-check-label">
+                        <input type="checkbox" id="chkTodos" name="chkTodos" class="form-check-input" /> TODOS
+                    </label>
+
+                    <br /><br />
+
+                    <!-- Contenedor de los puestos -->
+                    <div id="panelPuestos" style="width: 100%; background-color: #FFF; overflow-y: auto; height: 400px; border: 1px solid #ccc; padding: 10px;">
+                        @if (Model.Puestos != null && Model.Puestos.Any())
+                        {
+                            foreach (var item in Model.Puestos)
+                            {
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" name="PuestosSeleccionados" value="@item.Value" @(item.Selected ? "checked" : "") class="form-check-input" />
+                                        @item.Text
+                                    </label>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p>No hay puestos disponibles.</p>
+                        }
+
+
+                    </div>
+
+                </div>
+
+
+
+            </div>
+        </div>
+    }
+</div>
+
+
+
+<div class="modal fade" id="confirmModModal" tabindex="-1" aria-labelledby="confirmModModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModModalLabel">Confirmar Modificación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro de que desea guardar los cambios en el documento?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmModYes">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro de que desea eliminar este documento?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmYes">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="loadingOverlay">
+    <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+</div>
+
+
+<div class="modal-footer d-flex justify-content-end">
+    <button type="button" form="formEditarDocumento" class="btn btn-primary" id="btnGuardar">GUARDAR MODIFICACIONES</button>
+    <button type="button" class="btn btn-danger" id="btnEliminar" style="margin-left:10px;">ELIMINAR</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="margin-left:10px;">CANCELAR</button>
+</div>
+
+
+
+
+<script>
+$(document).ready(function () {
+    var docIdAEliminar = null;
+    var formEditarDocumentoRef = null;
+
+
+   $(document).on("click", "#btnEliminar", function (e) {
+        e.preventDefault();
+        docIdAEliminar = '@Model.Documento.ID';
+        $('#confirmModal').modal('show');
+    });
+
+    $(document).on("click", "#btnConfirmYes", function (e) {
+        e.preventDefault();
+        if (!docIdAEliminar) {
+            alert("No se pudo determinar el ID del documento a eliminar.");
+            return;
+        }
+        var formData = new FormData();
+        formData.append("id", docIdAEliminar);
+        $.ajax({
+            url: "/Documentos/EliminarDocumentoElegido",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function () {
+                $("#loadingOverlay").show();
+            },
+            success: function (response) {
+                $("#loadingOverlay").hide();
+                if (response.success) {
+
+                    $("#confirmModal").modal("hide");
+                    $("#modalEditarDocumento").modal("hide");
+                    location.reload();
+                } else {
+                    alert("Error al eliminar el documento.");
+                }
+            },
+            error: function () {
+                $("#loadingOverlay").hide();
+                alert("Ocurrió un error al intentar eliminar el documento.");
+            }
+        });
+    });
+});
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#chkTodos").change(function () {
+            var isChecked = $(this).is(":checked");
+            // Marcar o desmarcar todos los checkboxes dentro de #panelPuestos
+            $("#panelPuestos input[name='PuestosSeleccionados']").prop("checked", isChecked);
+        });
+    });
+
+</script>
+<script>
+$(document).ready(function () {
+    var docIdAEliminar = null;
+    var formEditarDocumentoRef = null;
+
+    $(document).on("click", "#btnEliminar", function (e) {
+        e.preventDefault();
+        docIdAEliminar = '@Model.Documento.ID';
+
+        Swal.fire({
+            title: '¿Está seguro?',
+            text: "Esta acción eliminará el documento de forma permanente.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var formData = new FormData();
+                formData.append("id", docIdAEliminar);
+
+                $.ajax({
+                    url: "/Documentos/EliminarDocumentoElegido",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function () {
+                        $("#loadingOverlay").show();
+                    },
+                    success: function (response) {
+                        $("#loadingOverlay").hide();
+                        if (response.success) {
+                            Swal.fire({
+                                title: 'Eliminado',
+                                text: response.message,
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                $("#modalEditarDocumento").modal("hide");
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function () {
+                        $("#loadingOverlay").hide();
+                        Swal.fire('Error', 'Ocurrió un problema al intentar eliminar el documento.', 'error');
+                    }
+                });
+            }
+        });
+    });
+
+    $(document).on("click", "#btnGuardar", function (e) {
+        e.preventDefault();
+        formEditarDocumentoRef = $("#formEditarDocumento")[0];
+
+        Swal.fire({
+            title: '¿Guardar cambios?',
+            text: "Se actualizará la información del documento.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, guardar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var formData = new FormData(formEditarDocumentoRef);
+
+                var loadingTimeout = setTimeout(function () {
+                    $("#loadingOverlay").show();
+                }, 1500);
+
+                $.ajax({
+                    url: "/Documentos/EditDocumentPartial",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        clearTimeout(loadingTimeout);
+                        $("#loadingOverlay").hide();
+
+                        if (response.success) {
+                            Swal.fire({
+                                title: 'Éxito',
+                                text: 'Documento actualizado correctamente.',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                $("#modalEditarDocumento").modal("hide");
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', response.message || 'Error al actualizar el documento.', 'error');
+                        }
+                    },
+                    error: function () {
+                        clearTimeout(loadingTimeout);
+                        $("#loadingOverlay").hide();
+                        Swal.fire('Error', 'Hubo un problema al guardar los cambios.', 'error');
+                    }
+                });
+            }
+        });
+    });
+
+    // 🌳 Inicialización del árbol de carpetas
+    if ($.fn.jstree) {
+        var treeData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+            Model.FolderTree.Select(c => new {
+                id = c.ID.ToString(),
+                parent = (c.IDCARPETA == 0 ? "#" : c.IDCARPETA.ToString()),
+                text = c.CARPETA ?? "Sin Nombre",
+                icon = "bi bi-folder-fill"
+            })
+        ));
+
+        $('#folderTreeEdit').jstree({
+            core: { data: treeData, check_callback: true }
+        });
+
+        $('#folderTreeEdit').on("ready.jstree", function (e, data) {
+            var treeInstance = $('#folderTreeEdit').jstree(true);
+            var currentFolderId = "@Model.Documento.IDCARPETA";
+            if (currentFolderId) {
+                treeInstance.select_node(currentFolderId);
+                var folderPath = treeInstance.get_path(currentFolderId, ' / ', false);
+                $('#folderRoute').val(folderPath);
+            }
+        });
+
+        $('#folderTreeEdit').on("select_node.jstree", function (e, data) {
+            var selectedFolderId = data.node.id;
+            $('#SelectedFolderId').val(selectedFolderId);
+            var treeInstance = $('#folderTreeEdit').jstree(true);
+            var folderPath = treeInstance.get_path(selectedFolderId, ' / ', false);
+            $('#folderRoute').val(folderPath);
+        });
+    } else {
+        console.error("jstree no está disponible. Verifica la carga de jstree.min.js.");
+    }
+});
+</script>
+
+
+
+

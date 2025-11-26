@@ -1,0 +1,67 @@
+﻿@model WEBSGI.Models.ViewModel.PuestosViewModel
+@{
+    ViewBag.Title = "Editar Puesto";
+}
+
+<div class="container-fluid py-4">
+    <h2 class="text-center mb-4">Editar Puesto</h2>
+
+    @using (Html.BeginForm("Editar", "Puestos", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        <div class="container" style="max-width: 900px;">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="form-group mb-4">
+                        <label for="PUESTO" class="form-label fw-bold">Puesto:</label>
+                        @Html.TextBoxFor(model => model.PUESTO, new { @class = "form-control form-control-lg", placeholder = "Ingrese el nombre del puesto" })
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="DESCRIPCION" class="form-label fw-bold">Descripción:</label>
+                        @Html.TextAreaFor(model => model.DESCRIPCION, new { @class = "form-control", rows = 6, style = "min-height: 120px;", placeholder = "Descripción detallada del puesto" })
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="FUNCIONES" class="form-label fw-bold">Funciones:</label>
+                        @Html.TextAreaFor(model => model.FUNCIONES, new { @class = "form-control", rows = 8, style = "min-height: 160px;", placeholder = "Detalle las funciones del puesto" })
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="PERFIL" class="form-label fw-bold">Perfil:</label>
+                        @Html.TextAreaFor(model => model.PERFIL, new { @class = "form-control", rows = 6, style = "min-height: 140px;", placeholder = "Perfil requerido para el puesto" })
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="REQUISITOS" class="form-label fw-bold">Requisitos:</label>
+                        @Html.TextAreaFor(model => model.REQUISITOS, new { @class = "form-control", rows = 6, style = "min-height: 140px;", placeholder = "Requisitos específicos para el puesto" })
+                    </div>
+
+                    <input type="hidden" name="ID" value="@Model.ID" />
+
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg px-4">
+                            <i class="bi bi-save me-2"></i>Guardar
+                        </button>
+                        <a href="@Url.Action("Index", "Puestos")" class="btn btn-secondary btn-lg px-4">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Script opcional para autoajustar altura de textareas -->
+<script>
+    $(document).ready(function() {
+        // Auto-resize textareas based on content
+        $('textarea').each(function() {
+            this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+        }).on('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    });
+</script>

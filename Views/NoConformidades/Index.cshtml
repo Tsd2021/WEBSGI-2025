@@ -1,0 +1,355 @@
+﻿@model IEnumerable<WEBSGI.Models.NoConformidad>
+@{
+    ViewBag.Title = "No Conformidades";
+    bool esAdministrador = Session["NIVEL"] != null && Session["NIVEL"].ToString() == "ADMINISTRADOR";
+}
+
+<style>
+    body {
+        background-image: url('@Url.Content("~/IMGs/Fondos/WIK_8188.JPG")');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        margin: 0;
+        padding: 0;
+        margin-top:80px;
+    }
+
+    .titulo-op-mejora {
+        font-size: 32px;
+        font-weight: bold;
+        color: #B22222;
+        text-align: center;
+        text-transform: uppercase;
+        border-bottom: 3px solid #B22222;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    .filter-container {
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+        margin: 30px auto;
+        max-width: 600px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .filter-item label {
+        display: block;
+        color: #333;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .table-container {
+        margin-top: 20px;
+        background-color: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        overflow-x: auto;
+    }
+
+    .table {
+        margin: 5px auto;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table th {
+        background-color: #B22222;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .table-sm td, .table-sm th {
+        padding: 12px;
+        font-size: 16px;
+        text-align: center;
+    }
+
+    .btn-success {
+        padding: 8px 20px;
+        font-size: 16px;
+        background-color: #B22222;
+        border-color: #B22222;
+    }
+
+    .btn:hover {
+        background-color: #007B8A;
+    }
+
+    .estado-cerrada {
+        color: red;
+        font-weight: bold;
+    }
+
+    .estado-abierta {
+        color: green;
+        font-weight: bold;
+    }
+    @@media (max-width: 768px) {
+        .titulo-op-mejora {
+            font-size: 24px;
+        }
+
+        .table thead {
+            display: none;
+        }
+
+        .table tbody tr {
+            display: block;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: #fff;
+        }
+
+        .table tbody td {
+            display: flex;
+            justify-content: space-between;
+            text-align: left;
+            padding: 8px;
+            border: none !important;
+        }
+
+        .table tbody td::before {
+            content: attr(data-label);
+            font-weight: bold;
+            color: #333;
+        }
+
+        .btn {
+            font-size: 14px;
+            padding: 6px 12px;
+        }
+    }
+    .stat-box {
+        min-width: 100px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+        .stat-box small {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .stat-box .h5 {
+            font-weight: bold;
+        }
+        .card small {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.card .h5 {
+    font-weight: bold;
+    margin: 0;
+}
+
+</style>
+
+<div class="container">
+
+    <div class="row justify-content-center align-items-start g-3 mb-5">
+        <!-- Columna izquierda: Card de filtros -->
+        <div class="col-md-6">
+            <div class="card p-3">
+                <div class="filter-container">
+                    <h1 class="titulo-op-mejora">
+                        NO CONFORMIDADES <i class="bi bi-exclamation-triangle-fill"></i>
+                    </h1>
+                    <div class="filter-item">
+                        <label for="FECHA1">Desde</label>
+                        <input id="FECHA1" name="Desde" type="date" class="form-control" />
+                    </div>
+                    <div class="filter-item">
+                        <label for="FECHA2">Hasta</label>
+                        <input id="FECHA2" name="Hasta" type="date" class="form-control" />
+                    </div>
+                    <div class="filter-item">
+                        <button type="button" class="btn btn-danger" onclick="buscar()">BUSCAR</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Cards chiquitas -->
+        <div class="col-md-3">
+            <div class="card p-3 mb-2 text-center bg-success text-white">
+                <small>Abiertas</small>
+                <div class="h5 mb-0">@ViewBag.Abiertas</div>
+            </div>
+            <div class="card p-3 mb-2 text-center bg-danger text-white">
+                <small>Cerradas</small>
+                <div class="h5 mb-0">@ViewBag.Cerradas</div>
+            </div>
+            <div class="card p-3 text-center bg-primary text-white">
+                <small>Totales</small>
+                <div class="h5 mb-0">@ViewBag.Total</div>
+            </div>
+        </div>
+    </div>
+
+
+    @if (esAdministrador)
+    {
+        <div class="mb-5 text-center">
+            <button id="btnNuevaNonConformidad" class="btn btn-success"
+                    data-url="@Url.Action("NuevaNoConformidad", "NoConformidades")">
+                <i class="bi bi-exclamation-triangle"></i>
+                NUEVA NO CONFORMIDAD
+            </button>
+        </div>
+    }
+
+    <div class="table-container">
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>ACCIONES</th>
+                    <th>NUMERO</th>
+                    <th>FECHA</th>
+                    <th>ISO</th>
+                    <th>NC</th>
+                    <th>PUNTO DE LA NORMA</th>
+                    <th>SECTOR</th>
+                    <th>ORIGEN</th>
+                    <th>ESTADO</th>
+                    <th>CIERRE</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td data-label="Acciones">
+                            <a href="javascript:void(0);"
+                               data-url="@Url.Action("Editar", "NoConformidades", new { id = item.ID })"
+                               class="btn btn-secondary editNonConformidad">
+                                <i class="bi bi-pencil-square"></i>
+                                @(esAdministrador ? "Ver / Editar" : "Ver")
+                            </a>
+                        </td>
+                        <td data-label="Número">@item.NUMERO</td>
+                        <td data-label="Fecha">
+                            @if (item.FECHA.HasValue)
+                            {
+                                @item.FECHA.Value.ToShortDateString()
+                            }
+                        </td>
+                        <td data-label="ISO">@item.ISO</td>
+                        <td data-label="NC">@item.NC</td>
+                        <td data-label="Punto de la Norma">@item.PROCEDIMIENTO</td>
+                        <td data-label="Sector">@item.REFIEREASECTOR</td>
+                        <td data-label="Origen">@item.ORIGEN</td>
+                        <td data-label="Estado">
+                            @if (item.ESTADO.Equals("CERRADA", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="estado-cerrada">CERRADA</span>
+                            }
+                            else if (item.ESTADO.Equals("ABIERTA", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="estado-abierta">ABIERTA</span>
+                            }
+                            else
+                            {
+                                @item.ESTADO
+                            }
+                        </td>
+                        <td data-label="Cierre">
+                            @if (item.CIERRE.HasValue)
+                            {
+                                @item.CIERRE.Value.ToShortDateString()
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="nonConformidadModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body"></div>
+        </div>
+    </div>
+</div>
+
+<!-- JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).on("click", "#btnNuevaNonConformidad", function () {
+        var url = $(this).data("url");
+        if (!url) {
+            alert("Error: URL no definida.");
+            return;
+        }
+        $("#nonConformidadModal .modal-body").load(url, function (response, status) {
+            if (status === "error") {
+                alert("Error al cargar el formulario.");
+            } else {
+                $("#nonConformidadModal").modal("show");
+            }
+        });
+    });
+
+    $(document).on("click", ".editNonConformidad", function () {
+        var url = $(this).data("url");
+        if (!url) {
+            alert("Error: URL no definida.");
+            return;
+        }
+        $("#nonConformidadModal .modal-body").load(url, function (response, status) {
+            if (status === "error") {
+                alert("Error al cargar el formulario.");
+            } else {
+                $("#nonConformidadModal").modal("show");
+            }
+        });
+    });
+
+    function buscar() {
+        var desde = $("#FECHA1").val();
+        var hasta = $("#FECHA2").val();
+        if (!desde || !hasta) {
+            alert("Por favor, ingrese ambas fechas.");
+            return;
+        }
+        if (new Date(desde) > new Date(hasta)) {
+            alert("La fecha 'Desde' no puede ser mayor que 'Hasta'.");
+            return;
+        }
+        window.location.href = '@Url.Action("Buscar", "NoConformidades")'
+            + '?fecha1=' + encodeURIComponent(desde)
+            + '&fecha2=' + encodeURIComponent(hasta);
+    }
+
+    $(document).ready(function () {
+        var mensaje = '@TempData["Mensaje"]';
+        var tipoMensaje = '@TempData["TipoMensaje"]';
+        if (mensaje) {
+            Swal.fire({
+                title: tipoMensaje === 'success' ? 'Éxito' : 'Aviso',
+                text: mensaje,
+                icon: tipoMensaje === 'success' ? 'success' : 'warning',
+                confirmButtonText: 'OK'
+            });
+        }
+    });
+</script>

@@ -1,0 +1,170 @@
+﻿@model IEnumerable<WEBSGI.Models.Normas>
+
+@{
+    ViewBag.Title = "Normas";
+}
+@section styles{
+    <style>
+        html, body {
+    height: 100%;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('@Url.Content("~/IMGs/Fondos/WIK_8188.JPG")');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    filter: brightness(0.7); /* oscurece la imagen */
+    z-index: -2;
+}
+
+/* Capa blanca translúcida encima del fondo */
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.05);
+    z-index: -1;
+}
+
+
+
+    </style>
+
+
+    }    
+    
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <div class="text-center">
+           
+            <h3 class="mt-3">NORMAS</h3>
+        </div>
+
+        <!-- Botón para agregar nueva norma -->
+        <div class="text-center mt-3">
+            <button type="button" class="btn btn-success" onclick="toggleForm('formNuevaNorma', true)">+ NUEVA NORMA</button>
+        </div>
+
+        <!-- Formulario para agregar norma -->
+        <form id="formNuevaNorma" class="text-center mt-3" style="display: none;">
+            <input type="text" id="NORMA" class="form-control d-inline-block mb-2" placeholder="Norma" style="width: 150px;" required>
+            <input type="text" id="DESCRIPCION" class="form-control d-inline-block mb-2" placeholder="Descripción" style="width: 230px;" required>
+            <button type="button" class="btn btn-primary" onclick="guardarNorma()">GUARDAR</button>
+            <button type="button" class="btn btn-danger" onclick="toggleForm('formNuevaNorma', false)">CANCELAR</button>
+        </form>
+
+        <!-- Formulario para editar norma -->
+        <form id="formEditarNorma" class="text-center mt-3" style="display: none;">
+            <input type="hidden" id="EDIT_ID">
+            <input type="text" id="EDIT_NORMA" class="form-control d-inline-block mb-2" placeholder="Norma" style="width: 150px;" required>
+            <input type="text" id="EDIT_DESCRIPCION" class="form-control d-inline-block mb-2" placeholder="Descripción" style="width: 230px;" required>
+            <button type="button" class="btn btn-primary" onclick="actualizarNorma()">ACTUALIZAR</button>
+            <button type="button" class="btn btn-danger" onclick="toggleForm('formEditarNorma', false)">CANCELAR</button>
+        </form>
+
+        <!-- Tabla de Normas -->
+        <div class="table-responsive mt-4">
+            <table class="table table-bordered table-hover text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Acciones</th>
+                      
+                        <th>NORMA</th>
+                        <th>DESCRIPCIÓN</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaNormas">
+                    @foreach (var item in Model)
+                    {
+                        <tr id="norma_@item.ID">
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-warning btn-sm" onclick="editarNorma(@item.ID, '@item.NORMA', '@item.DESCRIPCION')">Editar</button>
+                                    <button class="btn btn-danger btn-sm" onclick="eliminarNorma(@item.ID)">Eliminar</button>
+                                </div>
+                            </td>
+                        
+                            <td>@item.NORMA</td>
+                            <td>@item.DESCRIPCION</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function toggleForm(formId, show) {
+            document.getElementById(formId).style.display = show ? "block" : "none";
+        }
+
+        function guardarNorma() {
+            var norma = $("#NORMA").val();
+            var descripcion = $("#DESCRIPCION").val();
+
+            $.post("/Normas/Guardar", { NORMA: norma, DESCRIPCION: descripcion }, function (data) {
+                if (data.success) {
+                    Swal.fire("Éxito", data.message, "success").then(() => location.reload());
+                } else {
+                    Swal.fire("Error", data.message, "error");
+                }
+            });
+        }
+
+        function editarNorma(id, norma, descripcion) {
+            $("#EDIT_ID").val(id);
+            $("#EDIT_NORMA").val(norma);
+            $("#EDIT_DESCRIPCION").val(descripcion);
+            toggleForm('formEditarNorma', true);
+        }
+
+        function actualizarNorma() {
+            var id = $("#EDIT_ID").val();
+            var norma = $("#EDIT_NORMA").val();
+            var descripcion = $("#EDIT_DESCRIPCION").val();
+
+            $.post("/Normas/Actualizar", { id: id, normaTxt: norma, descripcion: descripcion }, function (data) {
+                if (data.success) {
+                    Swal.fire("Éxito", data.message, "success").then(() => location.reload());
+                } else {
+                    Swal.fire("Error", data.message, "error");
+                }
+            });
+        }
+
+        function eliminarNorma(id) {
+            Swal.fire({
+                title: "¿Seguro?",
+                text: "Esta acción no se puede deshacer",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                confirmButtonText: "Eliminar"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post("/Normas/Eliminar", { id: id }, function (data) {
+                        if (data.success) {
+                            Swal.fire("Eliminado", data.message, "success").then(() => location.reload());
+                        } else {
+                            Swal.fire("Error", data.message, "error");
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

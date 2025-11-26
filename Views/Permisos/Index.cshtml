@@ -1,0 +1,164 @@
+﻿@model WEBSGI.Models.ViewModel.PuestosViewModel
+
+@{
+    ViewBag.Title = "Permisos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section styles{
+    <style>
+        html, body {
+    height: 100%;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('@Url.Content("~/IMGs/Fondos/WIK_8188.JPG")');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    filter: brightness(0.7); /* oscurece la imagen */
+    z-index: -2;
+}
+
+/* Capa blanca translúcida encima del fondo */
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.05);
+    z-index: -1;
+}
+
+
+    </style>
+    }
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<div class="container-fluid mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center mb-0">GESTIÓN DE PERMISOS</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group row mb-4">
+                        <label for="ddlPuestos" class="col-md-3 col-form-label text-muted">PUESTOS:</label>
+                        <div class="col-md-9">
+                            <select id="ddlPuestos" class="form-control border-0 rounded-pill shadow-sm">
+                                @foreach (var puesto in Model.Puestos)
+                                {
+                                    <option value="@puesto.ID">@puesto.PUESTO</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input permiso-check" id="Check1" data-acceso="1">
+                                <label class="form-check-label" for="Check1">DOCUMENTOS LISTADOS</label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input permiso-check" id="Check2" data-acceso="4">
+                                <label class="form-check-label" for="Check2">NO CONFORMIDADES</label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input permiso-check" id="Check4" data-acceso="11">
+                                <label class="form-check-label" for="Check4">OPORTUNIDAD DE MEJORA</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-12 text-center">
+                            <button id="btnGuardar" class="btn btn-lg btn-success rounded-pill shadow-sm px-5">GUARDAR</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Cargar permisos al seleccionar un puesto
+            $("#ddlPuestos").change(function () {
+                cargarPermisos();
+            });
+
+            // Cargar permisos iniciales
+            cargarPermisos();
+
+            // Guardar permisos
+            $("#btnGuardar").click(function () {
+                guardarPermisos();
+            });
+
+            function cargarPermisos() {
+                var idPuesto = $("#ddlPuestos").val();
+
+                if (!idPuesto) return; // Evita llamar si no hay un puesto seleccionado
+
+                $(".permiso-check").prop("checked", false);
+
+                $.ajax({
+                    url: '@Url.Action("BuscarPermisosPorPuesto", "Permisos")',
+                    type: 'GET',
+                    data: { idPuesto: idPuesto },
+                    success: function (permisos) {
+                        permisos.forEach(function (permiso) {
+                            $(".permiso-check[data-acceso='" + permiso.ACCESO + "']").prop("checked", true);
+                        });
+                    },
+                    error: function (error) {
+                        console.log("Error al cargar los permisos", error);
+                        Swal.fire("Error", "No se pudieron cargar los permisos", "error");
+                    }
+                });
+            }
+
+            function guardarPermisos() {
+                var idPuesto = $("#ddlPuestos").val();
+                var permisos = $(".permiso-check:checked").map(function () {
+                    return $(this).data("acceso");
+                }).get(); // Obtiene los valores en un array
+
+                if (!idPuesto) {
+                    Swal.fire("Advertencia", "Seleccione un puesto antes de guardar", "warning");
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("GuardarPermisos", "Permisos")',
+                    type: 'POST',
+                    data: { idPuesto: idPuesto, permisos: permisos },
+                    success: function (result) {
+                        Swal.fire({
+                            title: result.success ? "Éxito" : "Error",
+                            text: result.message,
+                            icon: result.success ? "success" : "error"
+                        });
+                    },
+                    error: function (error) {
+                        console.log("Error al guardar los permisos", error);
+                        Swal.fire("Error", "No se pudieron guardar los permisos", "error");
+                    }
+                });
+            }
+        });
+    </script>
+}

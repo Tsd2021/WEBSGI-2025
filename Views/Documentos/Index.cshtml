@@ -1,0 +1,479 @@
+﻿@model List<WEBSGI.Models.DocumentosCarpeta>
+
+@{
+    bool esAdministrador = Session["NIVEL"] != null && Session["NIVEL"].ToString() == "ADMINISTRADOR";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Listado de Carpetas";
+    var carpetas = Model ?? new List<WEBSGI.Models.DocumentosCarpeta>();
+    var documentos = ViewBag.Documentos as List<WEBSGI.Models.Documentos>;
+}
+
+@section styles {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" rel="stylesheet" />
+    <style>
+html, body {
+    height: 100%;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('@Url.Content("~/IMGs/Fondos/WIK_8188.JPG")');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    filter: brightness(0.7); /* oscurece la imagen un poco */
+    z-index: -2;
+}
+
+/* Capa adicional para contraste */
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.05);
+    z-index: -1;
+}
+        .search-form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 1.5em auto;
+            max-width: 700px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+
+.container, .documents-container, .search-form, table {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+        .icon-fixed {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .bi-folder-fill, .bi-folder2-open {
+            color: #FFC107;
+        }
+
+        .bi-files {
+            color: white;
+        }
+
+        #btnNuevoDocumento {
+            display: flex;
+            align-items: center;
+        }
+
+            #btnNuevoDocumento .btn-text {
+                display: inline-block;
+                max-width: 0;
+                overflow: hidden;
+                white-space: nowrap;
+                opacity: 0;
+                margin-left: 0;
+                transition: max-width 0.8s ease, opacity 0.8s ease, margin-left 0.8s ease;
+            }
+
+            #btnNuevoDocumento:hover .btn-text {
+                max-width: 200px;
+                opacity: 1;
+                margin-left: 5px;
+            }
+
+        .sidebar {
+            transition: all 0.5s ease !important;
+        }
+
+        .modal-dialog.modal-custom-width {
+            max-width: 1600px !important;
+            width: 100% !important;
+            margin: 30px auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 1em;
+        }
+
+ 
+
+            .search-form input[type="text"] {
+                width: 20%;
+                padding: 0.5em;
+                font-size: 1em;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+
+            .search-form button {
+                padding: 0.5em 1em;
+                font-size: 1em;
+                margin-left: 0.5em;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+                .search-form button.buscar {
+                    background: #4CAF50;
+                    color: #fff;
+                }
+
+                .search-form button.nuevo {
+                    background: #2196F3;
+                    color: #fff;
+                }
+
+        .radio-group {
+            display: inline-block;
+            margin: 0 1em;
+            font-size: 1em;
+        }
+
+            .radio-group label {
+                margin-right: 1em;
+            }
+
+        table {
+            width: 100%;
+            margin: 1em auto;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc !important;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        tbody tr:hover {
+            transform: scale(1.02);
+            transition: transform 0.3s ease;
+        }
+
+        .container {
+            display: flex;
+            margin: 50px;
+            overflow: hidden;
+            max-width: 95%;
+        }
+
+        .treeview-container {
+            width: 500px;
+            margin-right: 20px;
+        }
+
+        .documents-container {
+            width: 75%;
+            padding-left: 140px;
+            flex: 1;
+        }
+
+        #pdfViewer {
+            width: 100%;
+            height: 600px;
+            border: none;
+            display: none;
+            margin-top: 20px;
+        }
+
+        #download, #print {
+            display: none !important;
+        }
+
+        .jstree-anchor {
+            font-size: 1.18em;
+            padding: 5px 8px;
+        }
+
+        .jstree-default .jstree-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .jstree-ocl {
+            font-size: 4.2em;
+            width: 30px;
+            height: 32px;
+        }
+
+        .folder-route-input {
+            flex-grow: 1;
+            min-width: 300px;
+            max-width: 100%;
+        }
+
+        .icono-grande {
+            font-size: 2rem;
+        }
+
+        .icono-grandeSearch {
+            font-size: 1.3rem;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .file-icons img {
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        #documentViewer {
+            pointer-events: auto;
+            user-select: none;
+        }
+
+        @@media screen and (max-width: 1366px) {
+            .treeview-container {
+                width: 400px;
+            }
+
+            .documents-container {
+                padding-left: 50px;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+        }
+
+        @@media screen and (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .treeview-container, .documents-container {
+                width: 100%;
+                padding-left: 0;
+            }
+
+            .treeview-container {
+                margin-bottom: 20px;
+            }
+        }
+
+        @@media screen and (max-width: 768px) {
+            table {
+                font-size: 0.8em;
+            }
+
+            th, td {
+                padding: 5px;
+            }
+        }
+    </style>
+}
+
+<section class="search-form" style="margin-top:80px;">
+    <form action="/Documentos/Buscar" method="post">
+        <input type="text" name="titulo" placeholder="Buscar documento por título" value="@Request["titulo"]" />
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="estado" value="alta" @(string.IsNullOrEmpty(Request["estado"]) || Request["estado"] == "alta" ? "checked" : "") /> Alta
+            </label>
+            <label>
+                <input type="radio" name="estado" value="baja" @(Request["estado"] == "baja" ? "checked" : "") /> Baja
+            </label>
+        </div>
+        <button type="submit" class="buscar">Buscar <i class="bi bi-search"></i></button>
+    </form>
+</section>
+
+<p class="text-center">
+    @Html.ActionLink("Limpiar y Volver a la Raíz", "ResetNavigation", "Documentos", null, new { @class = "btn btn-secondary" })
+</p>
+
+<div class="container">
+
+    <div class="treeview-container">
+        <h2>Carpetas <i class="bi bi-folder-fill"></i></h2>
+        <div id="folderTree"></div>
+    </div>
+
+    <div class="documents-container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Archivos <i class="bi bi-folder2-open"></i></h2>
+            @if (esAdministrador)
+            {
+                <button id="btnNuevoDocumento" type="button" class="btn btn-success">
+                    <i class="bi bi-file-earmark-plus icono-grandeSearch"></i>
+                    <span class="btn-text">Agregar Documento</span>
+                </button>
+            }
+        </div>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Ver</th>
+                    <th>Título</th>
+                    <th>Revisión</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    @if (esAdministrador)
+                    {
+                        <th>Descargar</th>
+                        <th>Editar</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (ViewBag.Documentos != null && ((List<WEBSGI.Models.Documentos>)ViewBag.Documentos).Any())
+                {
+                    foreach (var doc in ViewBag.Documentos as List<WEBSGI.Models.Documentos>)
+                    {
+                        var ext = ((System.IO.Path.GetExtension(doc.NOMBREARCHIVO) ?? "").TrimStart('.').ToLowerInvariant());
+                        var estadoClase = doc.ESTADO == "BAJA" ? "text-danger fw-bold" : "text-success fw-bold";
+                        <tr>
+                            <td>
+                                <a href="#" class="view-document" data-id="@doc.ID" data-ext="@ext">
+                                    @if (ext == "pdf")
+                                    {<img src="/IMGs/pdf_filetype_icon_177525.svg" class="icon-fixed" /> }
+                                    else if (ext == "doc" || ext == "docx" || ext == "odt")
+                                    { <img src="/IMGs/icons8-microsoft-word-2019.svg" class="icon-fixed" /> }
+                                    else if (ext == "xls" || ext == "xlsx" || ext == "ods")
+                                    { <img src="/IMGs/icons8-microsoft-excel-2019.svg" class="icon-fixed" />}
+                                </a>
+                            </td>
+                            <td>@doc.TITULO</td>
+                            <td>@doc.REVISION</td>
+                            <td>@doc.TIPO</td>
+                            <td class="@estadoClase">@doc.ESTADO</td>
+                            @if (esAdministrador)
+                            {
+                                <td>
+                                    <a href="@Url.Action("DescargarDocumento", "Documentos", new { id = doc.ID })"
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-download"></i> Descargar
+                                    </a>
+                                </td>
+                                <td><a href="#" class="editar-documento" data-id="@doc.ID">Editar <i class="bi bi-pencil-square"></i></a></td>
+                            }
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="@(esAdministrador ? 6 : 5)">No se encontraron archivos.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modales -->
+<div class="modal fade" id="modalEditarDocumento" tabindex="-1">
+    <div class="modal-dialog modal-custom-width">
+        <div class="modal-content"><div id="modalContentEditar"></div></div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNuevoDocumento" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content"><div id="modalContent"></div></div></div>
+</div>
+
+<div class="modal fade" id="modalViewDocument" tabindex="-1">
+    <div class="modal-dialog modal-custom-width">
+        <div class="modal-content">
+            <div class="modal-body">
+                <iframe id="documentViewer" style="width:100%; height:850px; border:none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jquery")
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(document).on("click", "#btnNuevoDocumento", function (e) {
+                e.preventDefault();
+                $("#modalContent").load("/Documentos/NuevoDocumentoPartial", function (response, status) {
+                    if (status === "error") {
+                        $("#modalContent").html('<p class="text-danger">Error al cargar la vista.</p>');
+                    } else {
+                        $("#modalNuevoDocumento").modal("show");
+                    }
+                });
+            });
+
+            // Abrir modal editar documento
+            $(document).on("click", ".editar-documento", function (e) {
+                e.preventDefault();
+                var docId = $(this).data("id");
+                $("#modalContentEditar").load('/Documentos/DocumentoCRUD/' + docId, function (response, status) {
+                    if (status === "error") {
+                        $("#modalContentEditar").html('<p class="text-danger">Error al cargar la vista.</p>');
+                    } else {
+                        $("#modalEditarDocumento").modal("show");
+                    }
+                });
+            });
+
+            // Inicializar árbol de carpetas
+         var treeData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+                    carpetas.Select(c => new {
+                        id = c.ID.ToString(),
+                        parent = (c.IDCARPETA == null || c.IDCARPETA == 0 ? "#" : c.IDCARPETA.ToString()),
+                        text = string.IsNullOrWhiteSpace(c.CARPETA) ? "Sin Nombre" : c.CARPETA,
+                        icon = "bi bi-folder-fill"
+                    }).ToList()
+                ));
+
+            $('#folderTree').jstree({ 'core': { 'data': treeData, 'check_callback': true } });
+
+            // Ver documento
+            $(document).on("click", ".view-document", function (e) {
+                e.preventDefault();
+                var docId = $(this).data("id");
+                var ext = $(this).data("ext").toLowerCase();
+                var finalUrl = '@Url.Action("ViewDocument", "Documentos")' + '?id=' + docId;
+                if (ext !== "pdf") { finalUrl += "&convert=true"; }
+                var pdfViewerUrl = "/pdfjs/web/viewer.html";
+                var pdfParams = "file=" + encodeURIComponent(finalUrl);
+                $("#documentViewer").attr("src", pdfViewerUrl + "?" + pdfParams);
+                $("#modalViewDocument").modal("show");
+            });
+
+            // Recargar tras cerrar modal de edición
+            $(document).on('hidden.bs.modal', '#modalEditarDocumento', function () {
+                location.reload();
+            });
+        });
+        //esto carga los datos en la lista de alado
+      $('#folderTree').on("select_node.jstree", function (e, data) {
+        var folderId = data.node.id;
+        $.get('@Url.Action("Index", "Documentos")', { selectedId: folderId }, function (response) {
+            $(".documents-container").html($(response).find(".documents-container").html());
+        });
+});
+
+
+    </script>
+}

@@ -1,0 +1,615 @@
+﻿@model IEnumerable<WEBSGI.Models.DocumentosCarpeta>
+@{
+    ViewBag.Title = "Carpetas";
+    var carpetas = Model ?? new List<WEBSGI.Models.DocumentosCarpeta>();
+    var documentos = ViewBag.Documentos as List<WEBSGI.Models.Documentos>;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        html, body {
+    height: 100%;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('@Url.Content("~/IMGs/Fondos/WIK_8188.JPG")');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    filter: brightness(0.7); /* oscurece la imagen */
+    z-index: -2;
+}
+
+/* Capa blanca translúcida encima del fondo */
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.05);
+    z-index: -1;
+}
+
+        /* Contenedor principal */
+        .container {
+            display: flex;
+            margin: 20px auto;
+            max-width: 1200px;
+            gap: 25px;
+        }
+
+        /* Panel del árbol de carpetas */
+        .treeview-container {
+            width: 40%;
+            min-width: 350px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+            .treeview-container h2 {
+                color: #2c3e50;
+                margin-top: 0;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #eee;
+                display: flex;
+                align-items: center;
+            }
+
+                .treeview-container h2 i {
+                    margin-left: 8px;
+                    color: #ffc107;
+                }
+
+        #folderTree {
+            margin-top: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        /* Panel de acciones */
+        .route-panel {
+            flex: 1;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+            .route-panel h3 {
+                margin-top: 0;
+                color: #2c3e50;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #eee;
+            }
+
+            .route-panel label {
+                font-weight: 500;
+                margin-bottom: 10px;
+                display: block;
+                color: #495057;
+            }
+
+            .route-panel input {
+                margin: 8px 0 15px 0;
+                padding: 8px 12px;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                width: 100%;
+                max-width: 300px;
+                transition: border-color 0.2s;
+            }
+
+                .route-panel input:focus {
+                    border-color: #80bdff;
+                    outline: 0;
+                    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                }
+
+        .inline-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Botones */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Separador */
+        hr {
+            margin: 20px 0;
+            border: 0;
+            border-top: 1px solid #eee;
+        }
+
+        /* Logo */
+        .logo-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+            .logo-container img {
+                max-height: 60px;
+                margin-bottom: 15px;
+            }
+
+        /* Animaciones */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Input válido/inválido */
+        input.valid {
+            border-color: #28a745;
+        }
+
+        input.invalid {
+            border-color: #dc3545;
+        }
+
+        /* Texto de ruta */
+        .path-segment {
+            color: #6c757d;
+        }
+
+            .path-segment.last {
+                color: #dc3545;
+                font-weight: bold;
+            }
+
+        /* Estilo para la ruta activa */
+        .active-path {
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 3px solid #007bff;
+        }
+
+        .bi-folder-fill {
+            color: #FFC107;
+        }
+    </style>
+</head>
+<body style="margin-top:80px;">
+
+    <div class="container mt-5">
+        <!-- Árbol de carpetas -->
+        <div class="treeview-container">
+            <h2>Carpetas <i class="bi bi-folder-fill"></i></h2>
+            <div id="folderTree" class="fade-in"></div>
+        </div>
+
+        <!-- Panel derecho: Agregar y Modificar Carpeta -->
+        <div class="route-panel fade-in">
+            <!-- Sección Agregar Carpeta -->
+            <h3><i class="bi bi-folder-plus"></i> Agregar Carpeta</h3>
+            <div>
+                <label id="lblRutaNuevaCarpeta" class="active-path">Seleccione una carpeta o agregue una general</label>
+            </div>
+            <div class="inline-buttons">
+                <input type="text" id="txtNuevaCarpeta" placeholder="Nombre de la nueva carpeta" class="fade-in" />
+                <button type="button" id="btnAgregarCarpeta" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Agregar Carpeta
+                </button>
+            </div>
+            <hr />
+
+            <!-- Sección Modificar Carpeta -->
+            <h3><i class="bi bi-pencil-square"></i> Modificar Carpeta</h3>
+            <div>
+                <label id="lblRutaActual" class="active-path">Seleccione una carpeta</label>
+            </div>
+            <div class="inline-buttons">
+                <input type="text" id="txtUltimoSegmento" placeholder="Editar último segmento" class="fade-in" />
+                <button type="button" id="btnActualizarRuta" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Guardar cambios
+                </button>
+                <button type="button" id="btnEliminarCarpeta" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Eliminar Carpeta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/json2/20160511/json2.min.js"></script>
+
+    <script>
+        // Función para formatear la ruta: muestra el último segmento en rojo y negrita.
+        function formatearRuta(path) {
+            if (!path) return "Carpeta raíz";
+
+            var segments = path.split('/');
+            if (segments.length === 0) return path;
+
+            var base = segments.slice(0, segments.length - 1).join('/');
+            var last = segments[segments.length - 1];
+
+            return (base ? base + '/' : '') + '<span class="path-segment last">' + last + '</span>';
+        }
+
+        // Actualiza el label de "Ruta Actual" (área de modificar) y también "Ruta Nueva" (área de agregar)
+        function actualizarRutaPanel(node) {
+            var treeInstance = $('#folderTree').jstree(true);
+            var path = treeInstance.get_path(node, '/', false);
+            var formattedPath = formatearRuta(path);
+
+            $("#lblRutaActual").html(formattedPath).addClass('fade-in');
+            $("#txtUltimoSegmento").val(path.split('/').pop());
+
+            // También se actualiza el label de "Ruta Nueva" para agregar carpeta
+            $("#lblRutaNuevaCarpeta").html(formattedPath).addClass('fade-in');
+            $("#txtNuevaCarpeta").val("");
+        }
+
+        // Datos del árbol
+        var treeData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+            carpetas.Select(c => new {
+                id = c.ID.ToString(),
+                parent = (c.IDCARPETA == 0 ? "#" : c.IDCARPETA.ToString()),
+                text = c.CARPETA ?? "Sin Nombre",
+                icon = "bi bi-folder-fill"
+            }).ToList()
+        ));
+
+        // Inicializar jsTree
+        var tree = $('#folderTree').jstree({
+            'core': {
+                'data': treeData,
+                'check_callback': true,
+                'themes': {
+                    'responsive': true,
+                    'variant': 'large'
+                }
+            },
+            'plugins': ["wholerow", "unique"],
+
+        });
+
+        // Manejo de selección de nodos: actualiza ambos labels.
+        var autoSelectFlag = false;
+        tree.on("ready.jstree", function (e, data) {
+            var folderChain = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.FolderChain ?? new int[0]));
+            var treeInstance = $('#folderTree').jstree(true);
+            if (Array.isArray(folderChain) && folderChain.length > 0) {
+                autoSelectFlag = true;
+                function openNextNode(index) {
+                    if (index < folderChain.length) {
+                        var nodeId = folderChain[index].toString();
+                        treeInstance.open_node(nodeId, function () {
+                            openNextNode(index + 1);
+                        });
+                    } else {
+                        treeInstance.select_node(folderChain[folderChain.length - 1].toString());
+                    }
+                }
+                openNextNode(0);
+            }
+        });
+
+        // Cuando se selecciona un nodo, se actualizan los labels.
+        $('#folderTree').on("select_node.jstree", function (e, data) {
+            actualizarRutaPanel(data.node);
+            autoSelectFlag = false;
+        });
+
+        // Validación del campo para detectar el uso de '/'
+        $("#txtNuevaCarpeta").on("input", function() {
+            var inputValue = $(this).val();
+
+            if (inputValue.includes('')) {
+                // Es una subcarpeta, formatear el label
+                var parts = inputValue.split('/');
+                var lastSegment = parts[parts.length - 1];
+
+                // Identificar la carpeta base seleccionada (si hay)
+                var treeInstance = $('#folderTree').jstree(true);
+                var selected = treeInstance.get_selected();
+                var basePath = "";
+
+                if (selected.length > 0) {
+                    basePath = treeInstance.get_path(selected[0], '/', false);
+                }
+
+                // Combinar la ruta base con la nueva subcarpeta
+                var fullPath = basePath ? basePath + "/" + inputValue : inputValue;
+                $("#lblRutaNuevaCarpeta").html(formatearRuta(fullPath));
+
+                // Añadir clase para indicar validez
+                $(this).addClass("valid").removeClass("invalid");
+            } else {
+                // Es una carpeta normal, usar el comportamiento estándar
+                var treeInstance = $('#folderTree').jstree(true);
+                var selected = treeInstance.get_selected();
+
+                if (selected.length > 0) {
+                    var node = treeInstance.get_node(selected[0]);
+                    actualizarRutaPanel(node);
+                } else {
+                    $("#lblRutaNuevaCarpeta").html("Carpeta general: <span class='path-segment last'>" + inputValue + "</span>");
+                }
+
+                // Resetear clases de validación
+                $(this).removeClass("valid").removeClass("invalid");
+            }
+        });
+
+        // Evento para agregar una carpeta nueva
+        $("#btnAgregarCarpeta").click(function () {
+            var treeInstance = $('#folderTree').jstree(true);
+            var newFolderName = $("#txtNuevaCarpeta").val();
+
+            if (newFolderName.trim() === "") {
+                alert("Ingrese un nombre para la carpeta.");
+                $("#txtNuevaCarpeta").addClass("invalid").focus();
+                return;
+            }
+
+            var selected = treeInstance.get_selected();
+            var parentIdValue = selected.length > 0 ? selected[0] : 0;
+
+            // Mostrar animación de carga
+            $("#btnAgregarCarpeta").html('<i class="bi bi-hourglass-split"></i> Creando...').prop('disabled', true);
+
+            $.ajax({
+                url: "/Carpetas/AgregarCarpeta",
+                type: "POST",
+                data: { nombre: newFolderName, parentId: parentIdValue },
+                success: function (response) {
+                    if (response.success) {
+                        // Limpiar el campo
+                        $("#txtNuevaCarpeta").val("");
+
+                        // Recargar el árbol con los datos nuevos sin destruirlo
+                        var newTreeData = response.treeData;
+
+                        // Actualizar el árbol con los nuevos datos sin perder el estado
+                        treeInstance.settings.core.data = newTreeData;
+                        treeInstance.refresh();  // Actualiza el árbol sin destruirlo
+
+                        // Notificación más elegante (puedes usar toastr u otra biblioteca)
+                        var successMsg = $('<div class="alert alert-success fade-in">').text("Carpeta creada correctamente.");
+                        $('.route-panel').prepend(successMsg);
+                        setTimeout(function () { successMsg.fadeOut(function () { $(this).remove(); }); }, 3000);
+
+                        // Restablecer el botón
+                        $("#btnAgregarCarpeta").html('<i class="bi bi-plus-circle"></i> Agregar Carpeta').prop('disabled', false);
+                    } else {
+                        alert("Error al agregar la carpeta: " + response.message);
+                        $("#btnAgregarCarpeta").html('<i class="bi bi-plus-circle"></i> Agregar Carpeta').prop('disabled', false);
+                    }
+                },
+                error: function () {
+                    alert("Error en la petición para agregar la carpeta.");
+                    $("#btnAgregarCarpeta").html('<i class="bi bi-plus-circle"></i> Agregar Carpeta').prop('disabled', false);
+                }
+            });
+        });
+
+
+
+        // Evento para actualizar (renombrar) la carpeta seleccionada
+        $("#btnActualizarRuta").click(function () {
+            var treeInstance = $('#folderTree').jstree(true);
+            var selected = treeInstance.get_selected();
+
+            if (selected.length === 0) {
+                alert("Seleccione una carpeta para editar su nombre.");
+                return;
+            }
+
+            var nodeId = selected[0];
+            var newName = $("#txtUltimoSegmento").val();
+
+            if (newName.trim() === "") {
+                alert("Ingrese un nombre válido.");
+                $("#txtUltimoSegmento").addClass("invalid").focus();
+                return;
+            }
+
+            // Mostrar animación de carga
+            $("#btnActualizarRuta").html('<i class="bi bi-hourglass-split"></i> Guardando...').prop('disabled', true);
+
+            $.ajax({
+                url: "/Carpetas/ActualizarRutaCarpeta",
+                type: "POST",
+                data: { id: nodeId, nuevoNombre: newName },
+                success: function (response) {
+                    if (response.success) {
+                        // Restablecer botón
+                        $("#btnActualizarRuta").html('<i class="bi bi-save"></i> Guardar cambios').prop('disabled', false);
+
+                        // Notificación más elegante
+                        var successMsg = $('<div class="alert alert-success fade-in">').text("Carpeta actualizada correctamente.");
+                        $('.route-panel').prepend(successMsg);
+                        setTimeout(function() { successMsg.fadeOut(function() { $(this).remove(); }); }, 3000);
+
+                        treeInstance.rename_node(nodeId, newName);
+                        actualizarRutaPanel(treeInstance.get_node(nodeId));
+                    } else {
+                        // Restablecer botón
+                        $("#btnActualizarRuta").html('<i class="bi bi-save"></i> Guardar cambios').prop('disabled', false);
+
+                        alert("Error al actualizar la carpeta: " + response.message);
+                    }
+                },
+                error: function () {
+                    // Restablecer botón
+                    $("#btnActualizarRuta").html('<i class="bi bi-save"></i> Guardar cambios').prop('disabled', false);
+
+                    alert("Error en la petición de actualización.");
+                }
+            });
+        });
+
+
+        // Evento para eliminar la carpeta seleccionada
+        $("#btnEliminarCarpeta").click(function () {
+            var treeInstance = $('#folderTree').jstree(true);
+            var selected = treeInstance.get_selected();
+
+            if (selected.length === 0) {
+                // Notificación de SweetAlert si no hay selección
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Seleccione una carpeta',
+                    text: 'Por favor, seleccione una carpeta para eliminar.',
+                });
+                return;
+            }
+
+            var nodeId = selected[0];
+
+            // Confirmación con SweetAlert
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: "Esta acción eliminará la carpeta permanentemente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Deshabilitar el botón y mostrar el ícono de carga (flecha circular)
+                    $("#btnEliminarCarpeta").html('<i class="bi bi-arrow-repeat spin"></i> Eliminando...').prop('disabled', true);
+
+                    // Deshabilitar otras interacciones mientras se elimina
+                    $("#folderTree").jstree("disable");
+                    $("#btnAgregarCarpeta").prop('disabled', true);
+                    $("#btnActualizarRuta").prop('disabled', true);
+
+                    $.ajax({
+                        url: "/Carpetas/Eliminar",
+                        type: "POST",
+                        data: { id: nodeId },
+                        success: function (response) {
+                            if (response.success) {
+                                // Notificación de éxito con SweetAlert
+                                 Swal.fire({
+                        icon: 'success',
+                        title: 'Carpeta eliminada correctamente',
+                        text: 'La carpeta ha sido eliminada con éxito.',
+                    }).then(function() {
+                        // Redirigir al usuario a la acción Index
+                        window.location.href = '@Url.Action("Index", "Carpetas")';
+                    });
+
+                                // Eliminar el nodo del árbol
+                                treeInstance.delete_node(nodeId);
+
+                                // Recargar el árbol
+                                $('#folderTree').jstree(true).refresh();
+
+                                // Limpiar la ruta actual
+                                $("#lblRutaActual").text("Seleccione una carpeta");
+                                $("#lblRutaNuevaCarpeta").text("Seleccione una carpeta o agregue una general");
+
+                                // Habilitar nuevamente el botón y el árbol
+                                $("#btnEliminarCarpeta").html('<i class="bi bi-trash"></i> Eliminar Carpeta').prop('disabled', false);
+                                $("#folderTree").jstree("enable");
+                                $("#btnAgregarCarpeta").prop('disabled', false);
+                                $("#btnActualizarRuta").prop('disabled', false);
+
+                            } else {
+                                // Notificación de error con SweetAlert
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error al eliminar la carpeta',
+                                    text: response.message || 'Ocurrió un error inesperado.',
+                                });
+
+                                // Habilitar el botón nuevamente en caso de error
+                                $("#btnEliminarCarpeta").html('<i class="bi bi-trash"></i> Eliminar Carpeta').prop('disabled', false);
+                                $("#folderTree").jstree("enable");
+                            }
+                        },
+                        error: function () {
+                            // Notificación de error con SweetAlert
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error en la petición',
+                                text: 'Hubo un problema al intentar eliminar la carpeta.',
+                            });
+
+                            // Habilitar el botón nuevamente en caso de error
+                            $("#btnEliminarCarpeta").html('<i class="bi bi-trash"></i> Eliminar Carpeta').prop('disabled', false);
+                            $("#folderTree").jstree("enable");
+                            $("#btnAgregarCarpeta").prop('disabled', false);
+                            $("#btnActualizarRuta").prop('disabled', false);
+                        }
+                    });
+                } else {
+                    // Si el usuario cancela, simplemente habilitar el botón y árbol nuevamente
+                    $("#btnEliminarCarpeta").html('<i class="bi bi-trash"></i> Eliminar Carpeta').prop('disabled', false);
+                    $("#folderTree").jstree("enable");
+                    $("#btnAgregarCarpeta").prop('disabled', false);
+                    $("#btnActualizarRuta").prop('disabled', false);
+                }
+            });
+        });
+
+
+    </script>
+</body>
+</html>
