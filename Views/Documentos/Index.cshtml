@@ -114,7 +114,7 @@ body::after {
             margin-top: 1em;
         }
 
- 
+
 
             .search-form input[type="text"] {
                 width: 20%;
@@ -284,6 +284,17 @@ body::after {
             th, td {
                 padding: 5px;
             }
+        }
+        .modal {
+            z-index: 9999 !important;
+        }
+
+        /* Y el fondo oscuro apenas un nivel debajo */
+        .modal-backdrop {
+            z-index: 9998 !important;
+        }
+        .swal2-container {
+            z-index: 10000 !important;
         }
     </style>
 }
@@ -474,6 +485,47 @@ body::after {
         });
 });
 
+        $(document).on("click", "#btnGuardarDocumento", function (e) {
+            e.preventDefault();
+
+            var btn = $(this);
+
+            // Deshabilitar botón
+            btn.prop("disabled", true);
+            btn.text("Guardando...");
+
+            var form = $("#formNuevoDocumento")[0];
+            var data = new FormData(form);
+
+            $.ajax({
+                url: "/Documentos/NuevoDocumentoPartial",
+                type: "POST",
+                data: data,
+                contentType: false,
+                processData: false,
+                success: function (resp) {
+                    if (resp.success) {
+                        Swal.fire("Éxito", resp.message, "success").then(() => {
+                            $("#modalNuevoDocumento").modal("hide");
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error", resp.message, "error");
+
+                        // Rehabilitar botón en caso de error
+                        btn.prop("disabled", false);
+                        btn.text("Crear Documento");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error", "Ocurrió un error con la API.", "error");
+
+                    // Rehabilitar botón si hay error AJAX
+                    btn.prop("disabled", false);
+                    btn.text("Crear Documento");
+                }
+            });
+        });
 
     </script>
 }

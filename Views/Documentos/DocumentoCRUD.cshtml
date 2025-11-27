@@ -225,24 +225,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmModalLabel">Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                ¿Está seguro de que desea eliminar este documento?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="btnConfirmYes">Eliminar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 
 <div id="loadingOverlay">
     <div class="spinner-border text-light" role="status">
@@ -256,59 +238,6 @@
     <button type="button" class="btn btn-danger" id="btnEliminar" style="margin-left:10px;">ELIMINAR</button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="margin-left:10px;">CANCELAR</button>
 </div>
-
-
-
-
-<script>
-$(document).ready(function () {
-    var docIdAEliminar = null;
-    var formEditarDocumentoRef = null;
-
-
-   $(document).on("click", "#btnEliminar", function (e) {
-        e.preventDefault();
-        docIdAEliminar = '@Model.Documento.ID';
-        $('#confirmModal').modal('show');
-    });
-
-    $(document).on("click", "#btnConfirmYes", function (e) {
-        e.preventDefault();
-        if (!docIdAEliminar) {
-            alert("No se pudo determinar el ID del documento a eliminar.");
-            return;
-        }
-        var formData = new FormData();
-        formData.append("id", docIdAEliminar);
-        $.ajax({
-            url: "/Documentos/EliminarDocumentoElegido",
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            beforeSend: function () {
-                $("#loadingOverlay").show();
-            },
-            success: function (response) {
-                $("#loadingOverlay").hide();
-                if (response.success) {
-
-                    $("#confirmModal").modal("hide");
-                    $("#modalEditarDocumento").modal("hide");
-                    location.reload();
-                } else {
-                    alert("Error al eliminar el documento.");
-                }
-            },
-            error: function () {
-                $("#loadingOverlay").hide();
-                alert("Ocurrió un error al intentar eliminar el documento.");
-            }
-        });
-    });
-});
-</script>
-
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

@@ -69,7 +69,6 @@
         <div class="form-group">
             <strong>Carpeta:</strong>
             <textarea class="form-control folder-route-input" readonly rows="3">@ViewBag.FolderRoute</textarea>
-            @Html.HiddenFor(m => m.Documento.ID)
         </div>
 
 
@@ -77,8 +76,6 @@
             <strong>Visibilidad para los puestos:</strong><br />
 
 
-
-            <!-- Checkbox para seleccionar todos -->
             <label class="form-check-label">
                 <input type="checkbox" id="chkTodos" name="chkTodos" class="form-check-input" /> TODOS
             </label>
@@ -108,8 +105,6 @@
             </div>
 
 
-
-            <!-- Script para marcar/desmarcar todos -->
             <script type="text/javascript">
                 $(document).ready(function () {
                     $("#chkTodos").change(function () {
@@ -123,7 +118,7 @@
         </div>
 
         <div class="modal-footer">
-            <button type="submit" form="formNuevoDocumento" class="btn btn-primary">Crear Documento</button>
+            <button type="button" id="btnGuardarDocumento" class="btn btn-primary">Crear Documento</button>
         </div>
     }
 </div>
