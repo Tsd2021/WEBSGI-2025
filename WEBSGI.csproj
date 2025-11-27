@@ -336,7 +336,6 @@
     <Content Include="IMGs\certificado.png" />
     <Content Include="IMGs\Documentos activos.jpg" />
     <Content Include="IMGs\FondoCamion.JPG" />
-    <Content Include="IMGs\Fondos\carpetas.JPG" />
     <Content Include="IMGs\Fondos\WIK_7932.JPG" />
     <Content Include="IMGs\Fondos\WIK_8282.JPG" />
     <Content Include="IMGs\Fondos\wtcTecnisegur.JPG" />
