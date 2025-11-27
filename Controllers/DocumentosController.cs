@@ -285,7 +285,7 @@ namespace WEBSGI.Controllers
                         ESTADO = estado,
                         IDTIPO = model.SelectedTipo,
                         TIPO = tipo.TIPO,
-                        OBSERVACIONES = model.Documento.OBSERVACIONES
+                        OBSERVACIONES = model.Documento.OBSERVACIONES ?? ""
                     };
 
                     if (_repositorioDocumentos.Agregar(nuevoDocumento, fileUpload) != 0)
