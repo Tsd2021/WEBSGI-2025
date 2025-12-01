@@ -178,5 +178,82 @@ namespace WEBSGI.Controllers
             return PartialView("_ListaPuestos", puestos);
         }
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Crear(PuestosViewModel viewModel)
+        {
+            bool esCamillo = Session["numero"]?.ToString() == "20044";
+
+            if (!esCamillo)
+            {
+                TempData["SwalMessage"] = "No tiene permisos para crear puestos.";
+                TempData["SwalType"] = "error";
+                return RedirectToAction("Index");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Volvés a la vista con errores
+                return View(viewModel);
+            }
+
+            var nuevoPuesto = new Puestos
+            {
+                PUESTO = viewModel.PUESTO,
+                DESCRIPCION = viewModel.DESCRIPCION,
+                FUNCIONES = viewModel.FUNCIONES,
+                PERFIL = viewModel.PERFIL,
+                REQUISITOS = viewModel.REQUISITOS,
+                PUESTOPADRE = "",
+                IDPUESTOPADRE = 0
+            };
+
+            var resultado = _repositorioUsuarios.Agregar(nuevoPuesto);
+
+            if (resultado != 0)
+            {
+                TempData["SwalMessage"] = "Puesto creado correctamente.";
+                TempData["SwalType"] = "success";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                TempData["SwalMessage"] = "No se pudo crear el puesto.";
+                TempData["SwalType"] = "error";
+                return View(viewModel);
+            }
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Eliminar(int id)
+        {
+            bool esCamillo = Session["numero"]?.ToString() == "20044";
+
+            if (!esCamillo)
+            {
+                TempData["SwalMessage"] = "No tiene permisos para eliminar puestos.";
+                TempData["SwalType"] = "error";
+                return RedirectToAction("Index");
+            }
+
+            var resultado = _repositorioUsuarios.Eliminar(id);
+
+            if (resultado > 0)
+            {
+                TempData["SwalMessage"] = "Puesto eliminado correctamente.";
+                TempData["SwalType"] = "success";
+            }
+            else
+            {
+                TempData["SwalMessage"] = "No se pudo eliminar el puesto.";
+                TempData["SwalType"] = "error";
+            }
+
+            return RedirectToAction("Index");
+        }
+
     }
 }

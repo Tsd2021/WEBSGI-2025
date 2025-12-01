@@ -167,21 +167,23 @@ namespace WEBSGI.Repositorio
     FROM (
         SELECT 'Log' AS Origen, Usuario, ArchivoMovimiento, IpPublica, IpPrivada, CAST(Fecha AS DATETIME2) AS Fecha
         FROM Log
-        WHERE Fecha >= @FechaLimite
+        WHERE Fecha >= @FechaLimite AND Fecha <= @FechaActual
 
         UNION ALL
 
         SELECT 'Registro' AS Origen, Usuario, NULL, NULL, NULL, CAST(Fecha AS DATETIME2) AS Fecha
         FROM CREGISTROSINICIOSESION
-        WHERE Fecha >= @FechaLimite
+        WHERE Fecha >= @FechaLimite AND Fecha <= @FechaActual
     ) AS Combined
     ORDER BY Combined.Fecha DESC;
 ";
 
 
+
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
-                    cmd.Parameters.AddWithValue("@FechaLimite", DateTime.Now.AddDays(-1)); 
+                    cmd.Parameters.AddWithValue("@FechaLimite", DateTime.Now.AddDays(-1));
+                    cmd.Parameters.AddWithValue("@FechaActual", DateTime.Now);
 
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {

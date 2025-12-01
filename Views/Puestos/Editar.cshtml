@@ -3,6 +3,9 @@
     ViewBag.Title = "Editar Puesto";
 }
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <div class="container-fluid py-4">
     <h2 class="text-center mb-4">Editar Puesto</h2>
 
@@ -37,31 +40,60 @@
                         @Html.TextAreaFor(model => model.REQUISITOS, new { @class = "form-control", rows = 6, style = "min-height: 140px;", placeholder = "Requisitos específicos para el puesto" })
                     </div>
 
+                    @* ID escondido para editar *@
                     <input type="hidden" name="ID" value="@Model.ID" />
 
                     <div class="d-flex justify-content-center gap-3 mt-4">
                         <button type="submit" class="btn btn-primary btn-lg px-4">
                             <i class="bi bi-save me-2"></i>Guardar
                         </button>
+
                         <a href="@Url.Action("Index", "Puestos")" class="btn btn-secondary btn-lg px-4">
                             <i class="bi bi-x-circle me-2"></i>Cancelar
                         </a>
+
+                        <button type="button" class="btn btn-danger btn-lg px-4" onclick="confirmarEliminar()">
+                            <i class="bi bi-trash me-2"></i>Eliminar
+                        </button>
                     </div>
+
                 </div>
             </div>
         </div>
     }
 </div>
 
-<!-- Script opcional para autoajustar altura de textareas -->
+@* FORMULARIO OCULTO PARA ELIMINAR *@
+@using (Html.BeginForm("Eliminar", "Puestos", FormMethod.Post, new { id = "formEliminar" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.Hidden("id", Model.ID)
+}
+
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Auto-resize textareas based on content
-        $('textarea').each(function() {
+        $('textarea').each(function () {
             this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
-        }).on('input', function() {
+        }).on('input', function () {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
         });
     });
+
+    function confirmarEliminar() {
+        Swal.fire({
+            title: '¿Eliminar este puesto?',
+            text: 'Esta acción no se puede deshacer.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#d33'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('formEliminar').submit();
+            }
+        });
+    }
 </script>

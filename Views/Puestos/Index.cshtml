@@ -128,13 +128,13 @@
         bool esCamillo = Session["numero"]?.ToString() == "20044";
     }
 
-    @if (esCamillo)
-    {
+    @*@if (esCamillo)
+    {*@
         <button id="btnNuevoPuesto" class="btn btn-success" onclick="nuevoPuesto()">
             <i class="bi bi-person-fill-add"></i>
             <span class="texto">+ NUEVO PUESTO</span>
         </button>
-    }
+  @*  }*@
 
 </div>
 
@@ -286,5 +286,7 @@
         }
     });
 
+
+   
     </script>
 }
