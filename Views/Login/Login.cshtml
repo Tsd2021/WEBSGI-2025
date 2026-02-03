@@ -240,6 +240,21 @@
             z-index: 9999;
             display: none; /* oculto por defecto */
         }
+        .logo-iso-externo {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 25;
+            text-align: center;
+        }
+
+            .logo-iso-externo img {
+                width: 80vw;
+                max-width: 600px; /* tamaño grande */
+                height: auto;
+            }
+
     </style>
 
 </head>
@@ -263,7 +278,6 @@
             <button type="submit" class="btn-login">Ingresar</button>
         }
         <a href="#" class="forgot-password" id="btnMostrarRecuperacion">¿Olvidaste tu contraseña?</a>
-        <img src="~/IMGs/293_18788-9001-14001-27001 2013 FCR-eiC_LOGO-1.png" alt="Certificación" width="100%" style="margin-top: 20px;">
     </div>
 
     <!-- Modal para recuperación de contraseña -->
@@ -562,6 +576,9 @@
             });
         </script>
     }
+    <div class="logo-iso-externo">
+        <img src="~/IMGs/logo1.png" alt="Certificación">
+    </div>
 
 </body>
 </html>
