@@ -262,7 +262,8 @@ namespace WEBSGI.Controllers
 
                     int idCarpeta = Convert.ToInt32(Session["SelectedFolderId"]);
 
-                    Documentos carpetaRuta = _repositorioDocumentos.TraerCarpetaRutaPorIdCarpeta(idCarpeta);
+                    string carpetaRuta = _repositorioDocumentos.TraerRutaCompletaCarpeta(idCarpeta);
+
                     DocumentosTipo tipo = _repositorioDocumentos.BuscarTipo(model.SelectedTipo);
                     string estado = "";
                     if (model.SelectedEstado == "1")
@@ -279,7 +280,7 @@ namespace WEBSGI.Controllers
                         TITULO = model.Documento.TITULO,
 
                         IDCARPETA = idCarpeta,
-                        CARPETA = carpetaRuta.CARPETA,
+                        CARPETA = carpetaRuta,
                         IDESTADO = int.Parse(model.SelectedEstado),
                      
                         ESTADO = estado,
@@ -440,7 +441,7 @@ namespace WEBSGI.Controllers
 
             documento.IDCARPETA = model.SelectedFolderId;
             var carpeta = _repositorioDocumentos.TraerCarpetaRutaPorIdCarpeta(model.SelectedFolderId);
-            documento.CARPETA = carpeta?.CARPETA ?? "Sin nombre";
+            documento.CARPETA = carpeta ?? "Sin nombre";
 
             documento.REVISION = model.Documento.REVISION;
             documento.IDTIPO = model.SelectedTipo;

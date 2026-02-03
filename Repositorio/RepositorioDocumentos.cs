@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -200,25 +201,44 @@ namespace WEBSGI.Repositorio
             return carpeta;
         }
 
-        public Documentos TraerCarpetaRutaPorIdCarpeta(int id)
+        public string TraerCarpetaRutaPorIdCarpeta(int idCarpeta)
         {
-            Documentos u = new Documentos();
-            using (SqlConnection conexion = BD.obtenerConexion())
+            using (var conexion = BD.obtenerConexion())
+            using (var comando = new SqlCommand(
+                "SELECT TOP 1 CARPETA FROM dbo.CDOCUMENTOS WHERE IDCARPETA = @IDCARPETA", conexion))
             {
-                string query = "select ID, CARPETA, IDCARPETA from CDOCUMENTOS WHERE IDCARPETA = @IDCARPETA";
-                SqlCommand comando = new SqlCommand(query, conexion);
-                comando.Parameters.AddWithValue("@IDCARPETA", id);
-                SqlDataReader reader = comando.ExecuteReader();
-                while (reader.Read())
-                {
-                    u.ID = reader.GetInt32(0);
-                    u.CARPETA = reader.GetString(1);
-                    u.IDCARPETA = reader.GetInt32(2);
-                }
-                conexion.Close();
+                comando.Parameters.Add("@IDCARPETA", SqlDbType.Int).Value = idCarpeta;
+
+                var r = comando.ExecuteScalar();
+                return r == null || r == DBNull.Value ? null : r.ToString();
             }
-            return u;
         }
+        public string TraerRutaCompletaCarpeta(int id)
+        {
+            using (var conexion = BD.obtenerConexion())
+            using (var cmd = new SqlCommand(@"
+        ;WITH RUTA AS (
+            SELECT ID, CARPETA, IDCARPETA, CAST(CARPETA AS NVARCHAR(MAX)) AS Path
+            FROM dbo.CCARPETAS
+            WHERE ID = @ID
+
+            UNION ALL
+
+            SELECT c.ID, c.CARPETA, c.IDCARPETA,
+                   CAST(c.CARPETA + ' / ' + r.Path AS NVARCHAR(MAX))
+            FROM dbo.CCARPETAS c
+            INNER JOIN RUTA r ON r.IDCARPETA = c.ID
+        )
+        SELECT TOP 1 Path
+        FROM RUTA
+        WHERE IDCARPETA = 0;", conexion))
+            {
+                cmd.Parameters.Add("@ID", SqlDbType.Int).Value = id;
+                var r = cmd.ExecuteScalar();
+                return (r == null || r == DBNull.Value) ? null : r.ToString();
+            }
+        }
+
         public Documentos TraerInfoCarpetaPorIdDocumento(int ID)
         {
             Documentos u = new Documentos();
