@@ -62,22 +62,23 @@ namespace WEBSGI.Repositorio
                     u.NUMERO = reader.GetString(1);
                     u.FECHA = reader.GetDateTime(2);
                     u.ISO = reader.GetString(3);
-                    u.NC = reader.GetString(4);
-                    u.REFIEREASECTOR = reader.GetString(5);
-                    u.PROCEDIMIENTO = reader.GetString(6);
-                    u.ORIGEN = reader.GetString(7);
-                    u.DESCRIPCION = reader.GetString(8);
-                    u.CAUSA = reader.GetString(9);
-                    u.CAUSAACCIONINMEDIATA = reader.IsDBNull(10)
-                        ? null
-                        : reader.GetString(10);
-                    u.RESPONSABLE = reader.GetString(11);
+                    u.NC = reader.IsDBNull(4) ? "" : reader.GetString(4);
+                    u.REFIEREASECTOR = reader.IsDBNull(5) ? "" : reader.GetString(5);
+                    u.PROCEDIMIENTO = reader.IsDBNull(6) ? "" : reader.GetString(6);
+                    u.ORIGEN = reader.IsDBNull(7) ? "" : reader.GetString(7);
+                    u.DESCRIPCION = reader.IsDBNull(8) ? "" : reader.GetString(8);
+
+                    u.CAUSA = reader.IsDBNull(9) ? null : reader.GetString(9);
+                    u.CAUSAACCIONINMEDIATA = reader.IsDBNull(10) ? null : reader.GetString(10);
+
+                    u.RESPONSABLE = reader.IsDBNull(11) ? "" : reader.GetString(11);
+
                     u.PLAZOCIERRE = reader.GetDateTime(12);
                     u.CERRADAENFECHA = reader.GetString(13);
                     u.ACCIONCORRECTIVA = reader.IsDBNull(14)
                         ? null
                         : reader.GetString(14);
-                    u.ACCIONRESPONSABLE = reader.GetString(15);
+                    u.ACCIONRESPONSABLE = reader.IsDBNull(15) ? "" : reader.GetString(15);
                     u.ACCIONPLAZOCIERRE = reader.GetDateTime(16);
                     u.ACCIONCERRADAENFECHA = reader.GetString(17);
                     u.ESTADO = reader.GetString(18);
@@ -246,41 +247,49 @@ namespace WEBSGI.Repositorio
             using (SqlConnection conn = BD.obtenerConexion())
             {
                 string query = @"INSERT INTO CNOCONFORMIDAD 
-            (NUMERO, FECHA, ISO, NC, REFIEREASECTOR, PROCEDIMIENTO, ORIGEN, DESCRIPCION, CAUSA, 
-             CAUSAACCIONINMEDIATA, RESPONSABLE, PLAZOCIERRE, CERRADAENFECHA, ACCIONCORRECTIVA, 
-             ACCIONRESPONSABLE, ACCIONPLAZOCIERRE, ACCIONCERRADAENFECHA, ESTADO, CIERRE, OBSERVACIONES, TIPO)
-            VALUES
-            (@NUMERO, @FECHA, @ISO, @NC, @REFIEREASECTOR, @PROCEDIMIENTO, @ORIGEN, @DESCRIPCION, @CAUSA, 
-             @CAUSAACCIONINMEDIATA, @RESPONSABLE, @PLAZOCIERRE, @CERRADAENFECHA, @ACCIONCORRECTIVA, 
-             @ACCIONRESPONSABLE, @ACCIONPLAZOCIERRE, @ACCIONCERRADAENFECHA, @ESTADO, @CIERRE, @OBSERVACIONES, @TIPO)";
+        (NUMERO, FECHA, ISO, NC, REFIEREASECTOR, PROCEDIMIENTO, ORIGEN, DESCRIPCION, CAUSA, 
+         CAUSAACCIONINMEDIATA, RESPONSABLE, PLAZOCIERRE, CERRADAENFECHA, ACCIONCORRECTIVA, 
+         ACCIONRESPONSABLE, ACCIONPLAZOCIERRE, ACCIONCERRADAENFECHA, ESTADO, CIERRE, OBSERVACIONES, TIPO)
+        VALUES
+        (@NUMERO, @FECHA, @ISO, @NC, @REFIEREASECTOR, @PROCEDIMIENTO, @ORIGEN, @DESCRIPCION, @CAUSA, 
+         @CAUSAACCIONINMEDIATA, @RESPONSABLE, @PLAZOCIERRE, @CERRADAENFECHA, @ACCIONCORRECTIVA, 
+         @ACCIONRESPONSABLE, @ACCIONPLAZOCIERRE, @ACCIONCERRADAENFECHA, @ESTADO, @CIERRE, @OBSERVACIONES, @TIPO)";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@NUMERO", C.NUMERO);
                     cmd.Parameters.AddWithValue("@FECHA", C.FECHA);
-                    cmd.Parameters.AddWithValue("@ISO", C.ISO);
-                    cmd.Parameters.AddWithValue("@NC", C.NC);
-                    cmd.Parameters.AddWithValue("@REFIEREASECTOR", C.REFIEREASECTOR);
-                    cmd.Parameters.AddWithValue("@PROCEDIMIENTO", C.PROCEDIMIENTO);
-                    cmd.Parameters.AddWithValue("@ORIGEN", C.ORIGEN);
-                    cmd.Parameters.AddWithValue("@DESCRIPCION", C.DESCRIPCION);
-                    cmd.Parameters.AddWithValue("@CAUSA", C.CAUSA);
-                    cmd.Parameters.AddWithValue("@CAUSAACCIONINMEDIATA", C.CAUSAACCIONINMEDIATA);
-                    cmd.Parameters.AddWithValue("@RESPONSABLE", C.RESPONSABLE);
 
-                    cmd.Parameters.AddWithValue("@PLAZOCIERRE", C.PLAZOCIERRE);
+                    cmd.Parameters.AddWithValue("@ISO", C.ISO ?? "");
+                    cmd.Parameters.AddWithValue("@NC", C.NC ?? "");
+                    cmd.Parameters.AddWithValue("@REFIEREASECTOR", C.REFIEREASECTOR ?? "");
+                    cmd.Parameters.AddWithValue("@PROCEDIMIENTO", C.PROCEDIMIENTO ?? "");
+                    cmd.Parameters.AddWithValue("@ORIGEN", C.ORIGEN ?? "");
+                    cmd.Parameters.AddWithValue("@DESCRIPCION", C.DESCRIPCION ?? "");
+                    cmd.Parameters.AddWithValue("@CAUSA", C.CAUSA ?? "");
+                    cmd.Parameters.AddWithValue("@CAUSAACCIONINMEDIATA", C.CAUSAACCIONINMEDIATA ?? "");
+                    cmd.Parameters.AddWithValue("@RESPONSABLE", C.RESPONSABLE ?? "");
 
-                    cmd.Parameters.AddWithValue("@CERRADAENFECHA", C.CERRADAENFECHA);
-                    cmd.Parameters.AddWithValue("@ACCIONCORRECTIVA", C.ACCIONCORRECTIVA);
-                    cmd.Parameters.AddWithValue("@ACCIONRESPONSABLE", C.ACCIONRESPONSABLE);
+                    cmd.Parameters.AddWithValue("@PLAZOCIERRE",
+                        C.PLAZOCIERRE.HasValue ? (object)C.PLAZOCIERRE.Value : DBNull.Value);
 
-                    cmd.Parameters.AddWithValue("@ACCIONPLAZOCIERRE", C.ACCIONPLAZOCIERRE);
+                    cmd.Parameters.AddWithValue("@CERRADAENFECHA", C.CERRADAENFECHA ?? "");
 
-                    cmd.Parameters.AddWithValue("@ACCIONCERRADAENFECHA", C.ACCIONCERRADAENFECHA);
-                    cmd.Parameters.AddWithValue("@ESTADO", C.ESTADO);
-                    cmd.Parameters.AddWithValue("@CIERRE", C.CIERRE);
-                    cmd.Parameters.AddWithValue("@OBSERVACIONES", C.OBSERVACIONES);
-                    cmd.Parameters.AddWithValue("@TIPO", C.TIPO);
+
+                    cmd.Parameters.AddWithValue("@ACCIONCORRECTIVA", C.ACCIONCORRECTIVA ?? "");
+                    cmd.Parameters.AddWithValue("@ACCIONRESPONSABLE", C.ACCIONRESPONSABLE ?? "");
+
+                    cmd.Parameters.AddWithValue("@ACCIONPLAZOCIERRE",
+                        C.ACCIONPLAZOCIERRE.HasValue ? (object)C.ACCIONPLAZOCIERRE.Value : DBNull.Value);
+
+                    cmd.Parameters.AddWithValue("@ACCIONCERRADAENFECHA", C.ACCIONCERRADAENFECHA ?? "");
+
+
+                    cmd.Parameters.AddWithValue("@ESTADO", C.ESTADO ?? "");
+                    cmd.Parameters.AddWithValue("@CIERRE",
+                        C.CIERRE.HasValue ? (object)C.CIERRE.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@OBSERVACIONES", C.OBSERVACIONES ?? "");
+                    cmd.Parameters.AddWithValue("@TIPO", C.TIPO ?? "");
 
                     ret = cmd.ExecuteNonQuery();
                 }
