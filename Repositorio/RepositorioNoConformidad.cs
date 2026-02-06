@@ -68,11 +68,15 @@ namespace WEBSGI.Repositorio
                     u.ORIGEN = reader.GetString(7);
                     u.DESCRIPCION = reader.GetString(8);
                     u.CAUSA = reader.GetString(9);
-                    u.CAUSAACCIONINMEDIATA = reader.GetString(10);
+                    u.CAUSAACCIONINMEDIATA = reader.IsDBNull(10)
+                        ? null
+                        : reader.GetString(10);
                     u.RESPONSABLE = reader.GetString(11);
                     u.PLAZOCIERRE = reader.GetDateTime(12);
                     u.CERRADAENFECHA = reader.GetString(13);
-                    u.ACCIONCORRECTIVA = reader.GetString(14);
+                    u.ACCIONCORRECTIVA = reader.IsDBNull(14)
+                        ? null
+                        : reader.GetString(14);
                     u.ACCIONRESPONSABLE = reader.GetString(15);
                     u.ACCIONPLAZOCIERRE = reader.GetDateTime(16);
                     u.ACCIONCERRADAENFECHA = reader.GetString(17);
