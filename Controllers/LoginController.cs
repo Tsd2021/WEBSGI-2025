@@ -96,6 +96,7 @@ namespace WEBSGI.Controllers
                         Session["NUMERO"] = usuario.Numero;
                         Session["ROL"] = usuario.Nivel;
                         Session["PUESTO"] = usuario.Puesto;
+                        Session["numero"] = usuario.Numero;
 
                         string puestoStr = Session["PUESTO"] as string;
                         Session["PUESTOID"] = _repositorioUsuario.TraerPuestoPorNombre(puestoStr);
