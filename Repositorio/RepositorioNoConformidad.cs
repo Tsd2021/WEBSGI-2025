@@ -180,7 +180,7 @@ namespace WEBSGI.Repositorio
                     nc.PROCEDIMIENTO = reader.GetString(6);
                     nc.ORIGEN = reader.GetString(7);
                     nc.DESCRIPCION = reader.GetString(8);
-                    nc.CAUSA = reader.GetString(9);
+                    nc.CAUSA = reader.IsDBNull(9) ? "" : reader.GetString(9);
                     nc.CAUSAACCIONINMEDIATA = reader.GetString(10);
                     nc.RESPONSABLE = reader.GetString(11);
                     nc.PLAZOCIERRE = reader.GetDateTime(12);
