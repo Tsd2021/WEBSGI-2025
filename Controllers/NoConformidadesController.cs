@@ -227,6 +227,9 @@ namespace WEBSGI.Controllers
                 model.CAUSAACCIONINMEDIATA = string.IsNullOrWhiteSpace(model.CAUSAACCIONINMEDIATA)
                     ? ""
                     : model.CAUSAACCIONINMEDIATA;
+                model.CAUSA = string.IsNullOrWhiteSpace(model.CAUSA)
+                   ? ""
+                   : model.CAUSA;
 
                 model.NUMERO = string.IsNullOrWhiteSpace(model.NUMERO)
                    ? ""
