@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Security.Policy;
 using System.Web;
 using System.Web.Mvc;
+using System.Windows.Forms;
 using MathNet.Numerics.Distributions;
 using WEBSGI.Models;
 using WEBSGI.Repositorio;
@@ -190,86 +191,95 @@ namespace WEBSGI.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult NuevaNoConformidad(NoConformidad model, int NormaId)
         {
-            if (ModelState.IsValid)
+            try
             {
-                // Buscar norma seleccionada
-                Normas normaSeleccionada = _repositorioNoConformidades
-                    .TraerNromas()
-                    .FirstOrDefault(n => n.ID == NormaId);
-
-                if (normaSeleccionada != null)
+                if (ModelState.IsValid)
                 {
-                    model.ISO = normaSeleccionada.NORMA;
+                    // Buscar norma seleccionada
+                    Normas normaSeleccionada = _repositorioNoConformidades
+                        .TraerNromas()
+                        .FirstOrDefault(n => n.ID == NormaId);
+
+                    if (normaSeleccionada != null)
+                    {
+                        model.ISO = normaSeleccionada.NORMA;
+                    }
+
+                    // Fechas (evitar null)
+                    model.FECHA = ConvertirFecha(model.FECHA);
+                    model.PLAZOCIERRE = ConvertirFecha(model.PLAZOCIERRE);
+                    model.ACCIONPLAZOCIERRE = ConvertirFecha(model.PLAZOCIERRE);
+
+                    // Strings: nunca null
+                    model.CERRADAENFECHA = string.IsNullOrWhiteSpace(model.CERRADAENFECHA)
+                        ? ""
+                        : model.CERRADAENFECHA;
+
+                    model.OBSERVACIONES = string.IsNullOrWhiteSpace(model.OBSERVACIONES)
+                        ? ""
+                        : model.OBSERVACIONES;
+
+                    model.RESPONSABLE = string.IsNullOrWhiteSpace(model.RESPONSABLE)
+                        ? ""
+                        : model.RESPONSABLE;
+
+                    model.ACCIONCORRECTIVA = string.IsNullOrWhiteSpace(model.ACCIONCORRECTIVA)
+                        ? ""
+                        : model.ACCIONCORRECTIVA;
+
+                    model.CAUSAACCIONINMEDIATA = string.IsNullOrWhiteSpace(model.CAUSAACCIONINMEDIATA)
+                        ? ""
+                        : model.CAUSAACCIONINMEDIATA;
+                    model.CAUSA = string.IsNullOrWhiteSpace(model.CAUSA)
+                       ? ""
+                       : model.CAUSA;
+
+                    model.NUMERO = string.IsNullOrWhiteSpace(model.NUMERO)
+                       ? ""
+                       : model.NUMERO;
+
+                    model.TIPO = "NOCONFORMIDAD";
+
+                    int ret = _repositorioNoConformidades.Agregar(model);
+
+                    if (ret != 0)
+                    {
+                        Log LL = new Log();
+
+                        int numeroUsuario = Convert.ToInt32(Session["NUMERO"]);
+                        Usuarios usuario = _repositorioLog.BuscarUNO(numeroUsuario);
+
+                        LL.USUARIO = usuario.Usuario;
+                        LL.ARCHIVO_MOVIMIENTO = usuario.Nombre +
+                            ", Agregó una nueva No Conformidad N° " + model.NUMERO;
+
+                        LL.FECHA = DateTime.Now;
+                        LL.IPPUBLICA = Session["IPPUBLICA"].ToString();
+
+                        _repositorioLog.Agregar(LL);
+
+                        TempData["Mensaje"] = "No Conformidad creada correctamente.";
+                        return RedirectToAction("Index");
+                    }
+
+                    ModelState.AddModelError("", "No se pudo crear la No Conformidad.");
                 }
 
-                // Fechas (evitar null)
-                model.FECHA = ConvertirFecha(model.FECHA);
-                model.PLAZOCIERRE = ConvertirFecha(model.PLAZOCIERRE);
-                model.ACCIONPLAZOCIERRE = ConvertirFecha(model.PLAZOCIERRE);
+                ViewBag.Normas = new SelectList(
+                    _repositorioNoConformidades.TraerNromas(),
+                    "Id",
+                    "Norma",
+                    NormaId
+                );
 
-                // Strings: nunca null
-                model.CERRADAENFECHA = string.IsNullOrWhiteSpace(model.CERRADAENFECHA)
-                    ? ""
-                    : model.CERRADAENFECHA;
-
-                model.OBSERVACIONES = string.IsNullOrWhiteSpace(model.OBSERVACIONES)
-                    ? ""
-                    : model.OBSERVACIONES;
-
-                model.RESPONSABLE = string.IsNullOrWhiteSpace(model.RESPONSABLE)
-                    ? ""
-                    : model.RESPONSABLE;
-
-                model.ACCIONCORRECTIVA = string.IsNullOrWhiteSpace(model.ACCIONCORRECTIVA)
-                    ? ""
-                    : model.ACCIONCORRECTIVA;
-
-                model.CAUSAACCIONINMEDIATA = string.IsNullOrWhiteSpace(model.CAUSAACCIONINMEDIATA)
-                    ? ""
-                    : model.CAUSAACCIONINMEDIATA;
-                model.CAUSA = string.IsNullOrWhiteSpace(model.CAUSA)
-                   ? ""
-                   : model.CAUSA;
-
-                model.NUMERO = string.IsNullOrWhiteSpace(model.NUMERO)
-                   ? ""
-                   : model.NUMERO;
-
-                model.TIPO = "NOCONFORMIDAD";
-
-                int ret = _repositorioNoConformidades.Agregar(model);
-
-                if (ret != 0)
-                {
-                    Log LL = new Log();
-
-                    int numeroUsuario = Convert.ToInt32(Session["NUMERO"]);
-                    Usuarios usuario = _repositorioLog.BuscarUNO(numeroUsuario);
-
-                    LL.USUARIO = usuario.Usuario;
-                    LL.ARCHIVO_MOVIMIENTO = usuario.Nombre +
-                        ", Agregó una nueva No Conformidad N° " + model.NUMERO;
-
-                    LL.FECHA = DateTime.Now;
-                    LL.IPPUBLICA = Session["IPPUBLICA"].ToString();
-
-                    _repositorioLog.Agregar(LL);
-
-                    TempData["Mensaje"] = "No Conformidad creada correctamente.";
-                    return RedirectToAction("Index");
-                }
-
-                ModelState.AddModelError("", "No se pudo crear la No Conformidad.");
+                return View(model);
             }
+            catch (Exception ex)
+            {
 
-            ViewBag.Normas = new SelectList(
-                _repositorioNoConformidades.TraerNromas(),
-                "Id",
-                "Norma",
-                NormaId
-            );
-
-            return View(model);
+                throw ex;
+            }
+          
         }
     }
 }

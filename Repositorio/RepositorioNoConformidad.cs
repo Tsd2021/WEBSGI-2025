@@ -13,7 +13,7 @@ namespace WEBSGI.Repositorio
 
         public List<NoConformidad> TraerNoConformidades()
         {
-            return TraerPorTipo("NOCONFORMIDAD");
+            return TraerUltimos10NoConformidad();
         }
 
         public List<NoConformidad> TraerOportunidadesMejora()
@@ -91,6 +91,51 @@ namespace WEBSGI.Repositorio
             return lista;
         }
 
+        private List<NoConformidad> TraerUltimos10NoConformidad()
+        {
+            List<NoConformidad> lista = new List<NoConformidad>();
+            using (SqlConnection conexion = BD.obtenerConexion())
+            {
+
+                string query = "SELECT TOP 10 * FROM CNOCONFORMIDAD WHERE TIPO = @tipo ORDER BY ID DESC";
+                
+                SqlCommand comando = new SqlCommand(query, conexion);
+
+                comando.Parameters.AddWithValue("@tipo", "NOCONFORMIDAD");
+
+                SqlDataReader reader = comando.ExecuteReader();
+                while (reader.Read())
+                {
+                    NoConformidad u = new NoConformidad();
+                    u.ID = reader.GetInt32(0);
+                    u.NUMERO = reader.GetString(1);
+                    u.FECHA = reader.GetDateTime(2);
+                    u.ISO = reader.GetString(3);
+                    u.NC = reader.IsDBNull(4) ? "" : reader.GetString(4);
+                    u.REFIEREASECTOR = reader.IsDBNull(5) ? "" : reader.GetString(5);
+                    u.PROCEDIMIENTO = reader.IsDBNull(6) ? "" : reader.GetString(6);
+                    u.ORIGEN = reader.IsDBNull(7) ? "" : reader.GetString(7);
+                    u.DESCRIPCION = reader.IsDBNull(8) ? "" : reader.GetString(8);
+                    u.CAUSA = reader.IsDBNull(9) ? null : reader.GetString(9);
+                    u.CAUSAACCIONINMEDIATA = reader.IsDBNull(10) ? null : reader.GetString(10);
+                    u.RESPONSABLE = reader.IsDBNull(11) ? "" : reader.GetString(11);
+                    u.PLAZOCIERRE = reader.GetDateTime(12);
+                    u.CERRADAENFECHA = reader.GetString(13);
+                    u.ACCIONCORRECTIVA = reader.IsDBNull(14)
+                        ? null
+                        : reader.GetString(14);
+                    u.ACCIONRESPONSABLE = reader.IsDBNull(15) ? "" : reader.GetString(15);
+                    u.ACCIONPLAZOCIERRE = reader.GetDateTime(16);
+                    u.ACCIONCERRADAENFECHA = reader.GetString(17);
+                    u.ESTADO = reader.GetString(18);
+                    u.CIERRE = reader.GetDateTime(19);
+                    u.OBSERVACIONES = reader.GetString(20);
+                    lista.Add(u);
+                }
+                conexion.Close();
+            }
+            return lista;
+        }
 
         public List<NoConformidad> TraerOportunidadMejoras()
         {
@@ -158,48 +203,69 @@ namespace WEBSGI.Repositorio
         private List<NoConformidad> TraerPorTipoYFechas(string tipo, DateTime desde, DateTime hasta)
         {
             List<NoConformidad> lista = new List<NoConformidad>();
+
             using (SqlConnection conexion = BD.obtenerConexion())
             {
-                // Consulta que filtra por fecha y tipo
-                string query = "SELECT * FROM CNOCONFORMIDAD WHERE FECHA >= @desde AND FECHA <= @hasta AND TIPO = @tipo ORDER BY ID DESC";
-                SqlCommand comando = new SqlCommand(query, conexion);
-                comando.Parameters.AddWithValue("@desde", desde);
-                comando.Parameters.AddWithValue("@hasta", hasta);
-                comando.Parameters.AddWithValue("@tipo", tipo);
+                string query = @"SELECT 
+                            ID, NUMERO, FECHA, ISO, NC, REFIEREASECTOR, PROCEDIMIENTO, ORIGEN,
+                            DESCRIPCION, CAUSA, CAUSAACCIONINMEDIATA, RESPONSABLE,
+                            PLAZOCIERRE, CERRADAENFECHA, ACCIONCORRECTIVA, ACCIONRESPONSABLE,
+                            ACCIONPLAZOCIERRE, ACCIONCERRADAENFECHA, ESTADO, CIERRE, OBSERVACIONES
+                         FROM CNOCONFORMIDAD 
+                         WHERE FECHA >= @desde AND FECHA <= @hasta AND TIPO = @tipo 
+                         ORDER BY ID DESC";
 
-                SqlDataReader reader = comando.ExecuteReader();
-                while (reader.Read())
+                using (SqlCommand comando = new SqlCommand(query, conexion))
                 {
-                    NoConformidad nc = new NoConformidad();
-                    nc.ID = reader.GetInt32(0);
-                    nc.NUMERO = reader.GetString(1);
-                    nc.FECHA = reader.GetDateTime(2);
-                    nc.ISO = reader.GetString(3);
-                    nc.NC = reader.GetString(4);
-                    nc.REFIEREASECTOR = reader.GetString(5);
-                    nc.PROCEDIMIENTO = reader.GetString(6);
-                    nc.ORIGEN = reader.GetString(7);
-                    nc.DESCRIPCION = reader.GetString(8);
-                    nc.CAUSA = reader.IsDBNull(9) ? "" : reader.GetString(9);
-                    nc.CAUSAACCIONINMEDIATA = reader.GetString(10);
-                    nc.RESPONSABLE = reader.GetString(11);
-                    nc.PLAZOCIERRE = reader.GetDateTime(12);
-                    nc.CERRADAENFECHA = reader.GetString(13);
-                    nc.ACCIONCORRECTIVA = reader.GetString(14);
-                    nc.ACCIONRESPONSABLE = reader.GetString(15);
-                    nc.ACCIONPLAZOCIERRE = reader.GetDateTime(16);
-                    nc.ACCIONCERRADAENFECHA = reader.GetString(17);
-                    nc.ESTADO = reader.GetString(18);
-                    nc.CIERRE = reader.GetDateTime(19);
-                    nc.OBSERVACIONES = reader.GetString(20);
-                    lista.Add(nc);
+                    comando.Parameters.AddWithValue("@desde", desde);
+                    comando.Parameters.AddWithValue("@hasta", hasta);
+                    comando.Parameters.AddWithValue("@tipo", tipo);
+
+                    using (SqlDataReader reader = comando.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            NoConformidad nc = new NoConformidad();
+
+                            nc.ID = reader.GetInt32(0);
+                            nc.NUMERO = GetStringSafe(reader, 1);
+                            nc.FECHA = reader.GetDateTime(2); 
+                            nc.ISO = GetStringSafe(reader, 3);
+                            nc.NC = GetStringSafe(reader, 4);
+                            nc.REFIEREASECTOR = GetStringSafe(reader, 5);
+                            nc.PROCEDIMIENTO = GetStringSafe(reader, 6);
+                            nc.ORIGEN = GetStringSafe(reader, 7);
+                            nc.DESCRIPCION = GetStringSafe(reader, 8);
+                            nc.CAUSA = GetStringSafe(reader, 9);
+                            nc.CAUSAACCIONINMEDIATA = GetStringSafe(reader, 10);
+                            nc.RESPONSABLE = GetStringSafe(reader, 11);
+                            nc.PLAZOCIERRE = GetDateSafe(reader, 12);
+                            nc.CERRADAENFECHA = GetStringSafe(reader, 13);
+                            nc.ACCIONCORRECTIVA = GetStringSafe(reader, 14);
+                            nc.ACCIONRESPONSABLE = GetStringSafe(reader, 15);
+                            nc.ACCIONPLAZOCIERRE = GetDateSafe(reader, 16);
+                            nc.ACCIONCERRADAENFECHA = GetStringSafe(reader, 17);
+                            nc.ESTADO = GetStringSafe(reader, 18);
+                            nc.CIERRE = GetDateSafe(reader, 19);
+                            nc.OBSERVACIONES = GetStringSafe(reader, 20);
+
+                            lista.Add(nc);
+                        }
+                    }
                 }
-                conexion.Close();
             }
+
             return lista;
         }
+        private string GetStringSafe(SqlDataReader r, int i)
+        {
+            return r.IsDBNull(i) ? "" : r.GetString(i);
+        }
 
-
+        private DateTime? GetDateSafe(SqlDataReader r, int i)
+        {
+            return r.IsDBNull(i) ? (DateTime?)null : r.GetDateTime(i);
+        }
 
         public NoConformidad Buscar(int ID)
         {
