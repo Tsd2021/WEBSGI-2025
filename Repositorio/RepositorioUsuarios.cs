@@ -273,7 +273,7 @@ namespace WEBSGI.Repositorio
 
             using (SqlConnection conexion = BD.obtenerConexion())
             {
-                string query = "SELECT * FROM CPUESTOPADRE WHERE PUESTO IS NOT NULL AND PUESTO <> ''";
+                string query = "SELECT * FROM CPUESTOPADRE WHERE PUESTO IS NOT NULL AND PUESTO <> '' order by PUESTO ASC ";
                 SqlCommand comando = new SqlCommand(query, conexion);
 
                 try
