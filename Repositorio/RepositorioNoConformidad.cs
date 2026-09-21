@@ -94,49 +94,107 @@ namespace WEBSGI.Repositorio
         private List<NoConformidad> TraerUltimos10NoConformidad()
         {
             List<NoConformidad> lista = new List<NoConformidad>();
+
             using (SqlConnection conexion = BD.obtenerConexion())
             {
+                string query = @"SELECT TOP 10 *
+                         FROM CNOCONFORMIDAD
+                         WHERE TIPO = @tipo
+                         ORDER BY ID DESC";
 
-                string query = "SELECT TOP 10 * FROM CNOCONFORMIDAD WHERE TIPO = @tipo ORDER BY ID DESC";
-                
                 SqlCommand comando = new SqlCommand(query, conexion);
 
                 comando.Parameters.AddWithValue("@tipo", "NOCONFORMIDAD");
 
-                SqlDataReader reader = comando.ExecuteReader();
-                while (reader.Read())
+                using (SqlDataReader reader = comando.ExecuteReader())
                 {
-                    NoConformidad u = new NoConformidad();
-                    u.ID = reader.GetInt32(0);
-                    u.NUMERO = reader.GetString(1);
-                    u.FECHA = reader.GetDateTime(2);
-                    u.ISO = reader.GetString(3);
-                    u.NC = reader.IsDBNull(4) ? "" : reader.GetString(4);
-                    u.REFIEREASECTOR = reader.IsDBNull(5) ? "" : reader.GetString(5);
-                    u.PROCEDIMIENTO = reader.IsDBNull(6) ? "" : reader.GetString(6);
-                    u.ORIGEN = reader.IsDBNull(7) ? "" : reader.GetString(7);
-                    u.DESCRIPCION = reader.IsDBNull(8) ? "" : reader.GetString(8);
-                    u.CAUSA = reader.IsDBNull(9) ? null : reader.GetString(9);
-                    u.CAUSAACCIONINMEDIATA = reader.IsDBNull(10) ? null : reader.GetString(10);
-                    u.RESPONSABLE = reader.IsDBNull(11) ? "" : reader.GetString(11);
-                    u.PLAZOCIERRE = reader.GetDateTime(12);
-                    u.CERRADAENFECHA = reader.GetString(13);
-                    u.ACCIONCORRECTIVA = reader.IsDBNull(14)
-                        ? null
-                        : reader.GetString(14);
-                    u.ACCIONRESPONSABLE = reader.IsDBNull(15) ? "" : reader.GetString(15);
-                    u.ACCIONPLAZOCIERRE = reader.GetDateTime(16);
-                    u.ACCIONCERRADAENFECHA = reader.GetString(17);
-                    u.ESTADO = reader.GetString(18);
-                    u.CIERRE = reader.GetDateTime(19);
-                    u.OBSERVACIONES = reader.GetString(20);
-                    lista.Add(u);
+                    while (reader.Read())
+                    {
+                        NoConformidad u = new NoConformidad();
+
+                        u.ID = reader.IsDBNull(0) ? 0 : reader.GetInt32(0);
+
+                        u.NUMERO = reader.IsDBNull(1) ? "" : reader.GetString(1);
+
+                        u.FECHA = reader.IsDBNull(2)
+                            ? DateTime.MinValue
+                            : reader.GetDateTime(2);
+
+                        u.ISO = reader.IsDBNull(3) ? "" : reader.GetString(3);
+
+                        u.NC = reader.IsDBNull(4) ? "" : reader.GetString(4);
+
+                        u.REFIEREASECTOR = reader.IsDBNull(5)
+                            ? ""
+                            : reader.GetString(5);
+
+                        u.PROCEDIMIENTO = reader.IsDBNull(6)
+                            ? ""
+                            : reader.GetString(6);
+
+                        u.ORIGEN = reader.IsDBNull(7)
+                            ? ""
+                            : reader.GetString(7);
+
+                        u.DESCRIPCION = reader.IsDBNull(8)
+                            ? ""
+                            : reader.GetString(8);
+
+                        u.CAUSA = reader.IsDBNull(9)
+                            ? null
+                            : reader.GetString(9);
+
+                        u.CAUSAACCIONINMEDIATA = reader.IsDBNull(10)
+                            ? null
+                            : reader.GetString(10);
+
+                        u.RESPONSABLE = reader.IsDBNull(11)
+                            ? ""
+                            : reader.GetString(11);
+
+                        u.PLAZOCIERRE = reader.IsDBNull(12)
+                            ? DateTime.MinValue
+                            : reader.GetDateTime(12);
+
+                        u.CERRADAENFECHA = reader.IsDBNull(13)
+                            ? ""
+                            : reader.GetString(13);
+
+                        u.ACCIONCORRECTIVA = reader.IsDBNull(14)
+                            ? null
+                            : reader.GetString(14);
+
+                        u.ACCIONRESPONSABLE = reader.IsDBNull(15)
+                            ? ""
+                            : reader.GetString(15);
+
+                        u.ACCIONPLAZOCIERRE = reader.IsDBNull(16)
+                            ? DateTime.MinValue
+                            : reader.GetDateTime(16);
+
+                        u.ACCIONCERRADAENFECHA = reader.IsDBNull(17)
+                            ? ""
+                            : reader.GetString(17);
+
+                        u.ESTADO = reader.IsDBNull(18)
+                            ? ""
+                            : reader.GetString(18);
+
+                        u.CIERRE = reader.IsDBNull(19)
+                            ? DateTime.MinValue
+                            : reader.GetDateTime(19);
+
+                        u.OBSERVACIONES = reader.IsDBNull(20)
+                            ? ""
+                            : reader.GetString(20);
+
+                        lista.Add(u);
+                    }
                 }
-                conexion.Close();
             }
+
             return lista;
         }
-
         public List<NoConformidad> TraerOportunidadMejoras()
         {
             List<NoConformidad> LISTA = new List<NoConformidad>();
